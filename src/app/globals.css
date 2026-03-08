@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* === Brand Colors: Light Premium === */
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-primary: #1a2340;
+  --color-primary-light: #2d3a5c;
+  --color-secondary: #4a6fa5;
+  --color-accent: #e5880a;
+  --color-accent-warm: #f4a940;
+  --color-success: #1a8c6a;
+  --color-danger: #d93025;
+  --color-text-primary: #1c1e29;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-border: #e5e7eb;
+  --color-border-light: #f0f1f3;
+
+  --font-pretendard:
+    "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Bebas Neue", sans-serif;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-pretendard);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Premium Cards === */
+.card {
+  background: var(--color-surface);
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 6px 16px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.06);
+}
+
+.card-elevated {
+  background: var(--color-surface);
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-border);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.05),
+    0 16px 40px rgba(0, 0, 0, 0.06);
+}
+
+/* === Hero Background === */
+.gradient-hero {
+  background:
+    radial-gradient(
+      ellipse at 30% 0%,
+      rgba(74, 111, 165, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 70% 0%,
+      rgba(26, 35, 64, 0.06) 0%,
+      transparent 50%
+    ),
+    var(--color-background);
+}
+
+/* === Buttons === */
+.btn-primary {
+  background: linear-gradient(135deg, #1a2340, #2d3a5c);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(26, 35, 64, 0.25);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2d3a5c, #3d4e72);
+  box-shadow: 0 6px 20px rgba(26, 35, 64, 0.35);
+  transform: translateY(-1px);
+}
+
+/* === Gradient Accents === */
+.gradient-text {
+  background: linear-gradient(135deg, #1a2340, #4a6fa5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-accent {
+  background: linear-gradient(135deg, #e5880a, #f4a940);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.progress-gradient {
+  background: linear-gradient(90deg, #1a2340, #4a6fa5);
+}
+
+/* === Animations === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.4s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.4s ease-out forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
