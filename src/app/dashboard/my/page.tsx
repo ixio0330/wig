@@ -87,18 +87,31 @@ export default function MyDashboardPage() {
     (lm) => lm.status === "ACTIVE",
   );
 
-  // 이번 주 전체 달성률 계산
-  const passedDays = weekDates.filter((d) => d <= today).length;
-  const maxAchievable = activeLeadMeasures.length * passedDays;
-  const totalAchieved = activeLeadMeasures.reduce((acc, lm) => {
-    return (
-      acc +
-      weekDates.filter((date) => lm.logs.find((l) => l.logDate === date)?.value)
-        .length
-    );
+  // 이번 주 달성률 계산 (각 지표별 달성률의 평균)
+  const totalRate = activeLeadMeasures.reduce((acc, lm) => {
+    // 이번 주(월~일) 동안 달성한 횟수
+    const weeklyAchievedCount = weekDates.filter(
+      (date) => date <= today && lm.logs.find((l) => l.logDate === date)?.value,
+    ).length;
+
+    // 지표별 이번 주 목표치 계산
+    // DAILY: 입력받은 targetValue 자체가 "주간 목표 횟수"로 쓰임 (예: 주 7회)
+    // WEEKLY: 입력받은 targetValue가 "주간 목표 횟수" (예: 주 3회)
+    // MONTHLY: 이번 주는 1회만 해도 100% 달성으로 간주 (또는 주간 목표치 산출)
+    let weeklyTarget = lm.targetValue;
+    if (lm.period === "MONTHLY") {
+      weeklyTarget = Math.max(1, Math.round(lm.targetValue / 4));
+    }
+
+    // 개별 지표의 달성률 (최대 100% 초과 방지)
+    const lmRate = Math.min((weeklyAchievedCount / weeklyTarget) * 100, 100);
+    return acc + lmRate;
   }, 0);
+
   const overallRate =
-    maxAchievable > 0 ? Math.round((totalAchieved / maxAchievable) * 100) : 0;
+    activeLeadMeasures.length > 0
+      ? Math.round(totalRate / activeLeadMeasures.length)
+      : 0;
 
   return (
     <div className="min-h-screen bg-background font-pretendard">

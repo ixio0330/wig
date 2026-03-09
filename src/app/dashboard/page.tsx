@@ -40,24 +40,44 @@ const MemberCard: React.FC<MemberCardProps> = ({
     (lm) => lm.status === "ACTIVE",
   );
 
-  // 이번 주 달성한 (지표 × 날짜) 셀 수
-  const totalSlots = activeLeadMeasures.reduce(
-    (acc, lm) => acc + weekDates.length,
-    0,
-  );
-  const achievedSlots = activeLeadMeasures.reduce((acc, lm) => {
-    const count = weekDates.filter(
-      (date) => lm.logs.find((l) => l.logDate === date)?.value,
+  // 이번 주 달성률 계산 (각 지표별 달성률의 평균)
+  const today = new Date().toISOString().split("T")[0];
+
+  const totalRate = activeLeadMeasures.reduce((acc, lm) => {
+    const weeklyAchievedCount = weekDates.filter(
+      (date) => date <= today && lm.logs.find((l) => l.logDate === date)?.value,
     ).length;
-    return acc + count;
+
+    let weeklyTarget = lm.targetValue;
+    if (lm.period === "MONTHLY") {
+      weeklyTarget = Math.max(1, Math.round(lm.targetValue / 4));
+    }
+
+    // 개별 지표의 달성률 (최대 100%)
+    const lmRate = Math.min((weeklyAchievedCount / weeklyTarget) * 100, 100);
+    return acc + lmRate;
   }, 0);
 
-  // 오늘 기준으로 지나간 날만 분모로 계산
-  const today = new Date().toISOString().split("T")[0];
-  const passedDays = weekDates.filter((d) => d <= today).length;
-  const maxAchievable = activeLeadMeasures.length * passedDays;
   const rate =
-    maxAchievable > 0 ? Math.round((achievedSlots / maxAchievable) * 100) : 0;
+    activeLeadMeasures.length > 0
+      ? Math.round(totalRate / activeLeadMeasures.length)
+      : 0;
+
+  // UI용 요약 (단순히 총 달성 건수 / 총 목표 건수)
+  const totalAchievedCount = activeLeadMeasures.reduce((acc, lm) => {
+    return (
+      acc +
+      weekDates.filter((date) => lm.logs.find((l) => l.logDate === date)?.value)
+        .length
+    );
+  }, 0);
+  const totalTargetCount = activeLeadMeasures.reduce((acc, lm) => {
+    let weeklyTarget = lm.targetValue;
+    if (lm.period === "MONTHLY") {
+      weeklyTarget = Math.max(1, Math.round(lm.targetValue / 4));
+    }
+    return acc + weeklyTarget;
+  }, 0);
 
   const rateColor =
     rate >= 80
@@ -101,7 +121,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
         <div className="flex justify-between text-[11px] text-text-muted">
           <span>이번 주 달성도</span>
           <span className="font-mono">
-            {achievedSlots} / {maxAchievable}
+            {totalAchievedCount} / {totalTargetCount}
           </span>
         </div>
         <div className="h-1.5 w-full bg-sub-background rounded-full overflow-hidden border border-border">
@@ -262,7 +282,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background font-pretendard">
-      <div className="max-w-[1000px] mx-auto p-4 md:p-8 space-y-10 animate-linear-in">
+      <div className="max-w-[860px] mx-auto p-4 md:p-8 space-y-10 animate-linear-in">
         {/* ── 헤더 ── */}
         <header className="flex items-center justify-between px-1">
           <div className="flex items-center gap-3">
@@ -309,7 +329,7 @@ export default function DashboardPage() {
               아직 활성화된 점수판이 없습니다.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeScoreboards.map((sb) => {
                 const member = mockUsers.find((u) => u.id === sb.userId);
                 if (!member) return null;
