@@ -28,7 +28,7 @@ export default function SetupPage() {
     } else {
       createScoreboard(goalName, lagMeasure);
     }
-    router.push("/");
+    router.push("/dashboard");
   };
 
   return (
@@ -37,7 +37,7 @@ export default function SetupPage() {
         {/* Navigation */}
         <nav>
           <Link
-            href="/"
+            href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
@@ -132,7 +132,7 @@ export default function SetupPage() {
                           )
                         ) {
                           archiveScoreboard();
-                          router.push("/");
+                          router.push("/dashboard");
                         }
                       }}
                       className="px-4 py-2 border border-border text-text-muted hover:text-text-primary hover:bg-sub-background rounded-lg text-xs font-bold transition-colors flex items-center gap-2 h-fit"
@@ -163,7 +163,7 @@ export default function SetupPage() {
                           )
                         ) {
                           deleteScoreboard();
-                          router.push("/");
+                          router.push("/dashboard");
                         }
                       }}
                       className="px-4 py-2 bg-danger text-white rounded-lg text-xs font-bold transition-transform active:scale-95 flex items-center gap-2 h-fit"

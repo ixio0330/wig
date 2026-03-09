@@ -56,7 +56,7 @@ export default function ProfilePage() {
       onClick: () => {
         if (confirm("정말 탈퇴하시겠습니까? 기록이 모두 사라집니다.")) {
           logout();
-          router.push("/login");
+          router.push("/");
         }
       },
       danger: true,
@@ -68,7 +68,7 @@ export default function ProfilePage() {
       <div className="max-w-[600px] mx-auto space-y-10 animate-linear-in">
         <nav>
           <Link
-            href="/"
+            href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />

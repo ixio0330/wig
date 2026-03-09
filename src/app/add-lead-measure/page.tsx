@@ -10,16 +10,48 @@ export default function AddLeadMeasurePage() {
   const { scoreboard, addLeadMeasure } = useMockData();
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [targetValue, setTargetValue] = useState(3);
-  const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY">("WEEKLY");
+  type MeasureInput = {
+    id: number;
+    name: string;
+    period: "WEEKLY" | "MONTHLY";
+    targetValue: number;
+  };
+
+  const [measures, setMeasures] = useState<MeasureInput[]>([
+    { id: Date.now(), name: "", period: "WEEKLY", targetValue: 3 },
+  ]);
+
+  const handleMeasureChange = (
+    id: number,
+    field: keyof MeasureInput,
+    value: string | number,
+  ) => {
+    setMeasures((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, [field]: value } : m)),
+    );
+  };
+
+  const addMeasureRow = () => {
+    setMeasures((prev) => [
+      ...prev,
+      { id: Date.now(), name: "", period: "WEEKLY", targetValue: 3 },
+    ]);
+  };
+
+  const removeMeasureRow = (id: number) => {
+    setMeasures((prev) => prev.filter((m) => m.id !== id));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    const validMeasures = measures.filter((m) => m.name.trim() !== "");
+    if (validMeasures.length === 0) return;
 
-    addLeadMeasure(name, targetValue, period);
-    router.push("/");
+    validMeasures.forEach((m) => {
+      addLeadMeasure(m.name, m.targetValue, m.period);
+    });
+
+    router.push("/dashboard");
   };
 
   if (!scoreboard) return null;
@@ -29,7 +61,7 @@ export default function AddLeadMeasurePage() {
       <div className="max-w-[600px] mx-auto space-y-8 animate-linear-in">
         <nav>
           <Link
-            href="/"
+            href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
@@ -73,118 +105,126 @@ export default function AddLeadMeasurePage() {
           </h1>
           <p className="text-[13px] text-text-muted leading-relaxed">
             목표를 달성하기 위해 매일 또는 매주 반복할 수 있는 '행동'을
-            정의하세요.
+            정의하세요. 한 번에 여러 지표를 추가할 수 있습니다.
           </p>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="card-linear p-8 space-y-10">
-            {/* 4DX Powered Name Input */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-sm block font-bold text-text-primary ml-0.5">
-                  어떤 행동을 반복할까요?
-                </label>
-                <div className="group relative">
-                  <div className="cursor-help flex items-center gap-1.5 text-[10px] bg-sub-background px-2 py-1 rounded-md text-text-muted font-bold transition-colors hover:text-primary hover:bg-primary/5">
-                    <Target className="w-3 h-3" />
-                    4DX 지표 가이드
-                  </div>
-                  {/* Tooltip */}
-                  <div className="absolute right-0 bottom-full mb-2 w-64 p-4 bg-white border border-border rounded-xl shadow-xl shadow-black/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                    <div className="text-xs font-bold text-text-primary mb-2">
-                      좋은 선행지표의 요건
-                    </div>
-                    <ul className="space-y-2">
-                      <li className="flex gap-2 text-[11px] text-text-muted leading-relaxed">
-                        <span className="text-primary font-bold">1.</span>
-                        <div>
-                          <b className="text-text-primary">예측성:</b>{" "}
-                          후행지표가 정말 바뀔까요?
-                        </div>
-                      </li>
-                      <li className="flex gap-2 text-[11px] text-text-muted leading-relaxed">
-                        <span className="text-primary font-bold">2.</span>
-                        <div>
-                          <b className="text-text-primary">통제 가능성:</b> 내가
-                          직접 할 수 있는 일인가요?
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
+          <div className="space-y-8">
+            {measures.map((measure, index) => (
+              <section
+                key={measure.id}
+                className="card-linear p-8 space-y-10 border-t pt-10"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-text-primary">
+                    선행지표 #{index + 1}
+                  </h2>
+                  {measures.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeMeasureRow(measure.id)}
+                      className="text-xs text-red-500 font-bold"
+                    >
+                      삭제
+                    </button>
+                  )}
                 </div>
-              </div>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="예: 매일 물 2L 마시기, 주 3회 30분 달리기"
-                className="w-full text-base p-4 bg-sub-background border border-border rounded-2xl focus:border-primary outline-none transition-all placeholder:text-text-muted/30"
-                required
-                autoFocus
-              />
-            </div>
 
-            {/* Period Selection */}
-            <div className="space-y-4">
-              <label className="text-sm block font-bold text-text-primary ml-0.5">
-                반복 주기
-              </label>
-              <div className="flex p-1 bg-sub-background rounded-2xl border border-border gap-1">
-                {(["WEEKLY", "MONTHLY"] as const).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => {
-                      setPeriod(p);
-                      if (p === "WEEKLY") setTargetValue(3);
-                      if (p === "MONTHLY") setTargetValue(1);
-                    }}
-                    className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all ${
-                      period === p
-                        ? "bg-white text-primary shadow-sm ring-1 ring-border/50"
-                        : "text-text-muted hover:text-text-primary"
-                    }`}
-                  >
-                    {p === "WEEKLY" ? "주 단위" : "월 단위"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Target Setting */}
-            <div className="space-y-4">
-              <label className="text-sm block font-bold text-text-primary ml-0.5">
-                {period === "WEEKLY"
-                  ? "일주일에 몇 번 반복할까요?"
-                  : "한 달에 몇 번 반복할까요?"}
-              </label>
-              <div className="flex items-center gap-6 bg-sub-background/50 p-4 rounded-2xl border border-border/50">
-                <div className="flex items-center gap-3">
+                {/* Name Input */}
+                <div className="space-y-4">
+                  <label className="text-sm block font-bold text-text-primary ml-0.5">
+                    어떤 행동을 반복할까요?
+                  </label>
                   <input
-                    type="number"
-                    min="1"
-                    max={period === "WEEKLY" ? 7 : 31}
-                    value={targetValue}
+                    value={measure.name}
                     onChange={(e) =>
-                      setTargetValue(parseInt(e.target.value) || 1)
+                      handleMeasureChange(measure.id, "name", e.target.value)
                     }
-                    className="w-16 text-center text-xl p-2 bg-white border border-border rounded-xl focus:border-primary outline-none transition-all font-bold shadow-sm"
+                    placeholder="예: 주 3회 30분 달리기"
+                    className="w-full text-base p-4 bg-sub-background border border-border rounded-2xl focus:border-primary outline-none transition-all placeholder:text-text-muted/30"
+                    required
                   />
-                  <span className="text-sm font-bold text-text-primary">
-                    회 실행
-                  </span>
                 </div>
-                <div className="h-4 w-px bg-border mx-2" />
-                <p className="text-[11px] text-text-muted font-medium leading-relaxed">
-                  {period === "WEEKLY"
-                    ? "일주일 동안의 목표 횟수를 설정합니다."
-                    : "한 달 동안의 목표 횟수를 설정합니다."}
-                </p>
-              </div>
-            </div>
-          </section>
 
-          <div className="pt-4">
+                {/* Period Selection */}
+                <div className="space-y-4">
+                  <label className="text-sm block font-bold text-text-primary ml-0.5">
+                    반복 주기
+                  </label>
+                  <div className="flex p-1 bg-sub-background rounded-2xl border border-border gap-1">
+                    {(["WEEKLY", "MONTHLY"] as const).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => {
+                          const newTarget = p === "WEEKLY" ? 3 : 1;
+                          handleMeasureChange(measure.id, "period", p);
+                          handleMeasureChange(
+                            measure.id,
+                            "targetValue",
+                            newTarget,
+                          );
+                        }}
+                        className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all ${
+                          measure.period === p
+                            ? "bg-white text-primary shadow-sm ring-1 ring-border/50"
+                            : "text-text-muted hover:text-text-primary"
+                        }`}
+                      >
+                        {p === "WEEKLY" ? "주 단위" : "월 단위"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Target Setting */}
+                <div className="space-y-4">
+                  <label className="text-sm block font-bold text-text-primary ml-0.5">
+                    {measure.period === "WEEKLY"
+                      ? "일주일에 몇 번 반복할까요?"
+                      : "한 달에 몇 번 반복할까요?"}
+                  </label>
+                  <div className="flex items-center gap-6 bg-sub-background/50 p-4 rounded-2xl border border-border/50">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min="1"
+                        max={measure.period === "WEEKLY" ? 7 : 31}
+                        value={measure.targetValue}
+                        onChange={(e) =>
+                          handleMeasureChange(
+                            measure.id,
+                            "targetValue",
+                            parseInt(e.target.value) || 1,
+                          )
+                        }
+                        className="w-16 text-center text-xl p-2 bg-white border border-border rounded-xl focus:border-primary outline-none transition-all font-bold shadow-sm"
+                      />
+                      <span className="text-sm font-bold text-text-primary">
+                        회 실행
+                      </span>
+                    </div>
+                    <div className="h-4 w-px bg-border mx-2" />
+                    <p className="text-[11px] text-text-muted font-medium leading-relaxed">
+                      {measure.period === "WEEKLY"
+                        ? "일주일 동안의 목표 횟수를 설정합니다."
+                        : "한 달 동안의 목표 횟수를 설정합니다."}
+                    </p>
+                  </div>
+                </div>
+              </section>
+            ))}
+          </div>
+
+          <div className="space-y-4 pt-4">
+            <button
+              type="button"
+              onClick={addMeasureRow}
+              className="w-full border-2 border-dashed border-border hover:border-primary hover:text-primary text-text-muted transition-all rounded-2xl py-3 text-sm font-bold"
+            >
+              + 다른 지표 추가하기
+            </button>
             <button
               type="submit"
               className="w-full btn-linear-primary py-4 flex items-center justify-center gap-2 text-sm font-bold shadow-lg shadow-primary/10 transition-all hover:translate-y-[-1px] active:scale-[0.98]"
