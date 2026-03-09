@@ -11,8 +11,8 @@ export default function AddLeadMeasurePage() {
   const router = useRouter();
 
   const [name, setName] = useState("");
-  const [targetValue, setTargetValue] = useState(7);
-  const [period, setPeriod] = useState<"DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
+  const [targetValue, setTargetValue] = useState(3);
+  const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY">("WEEKLY");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,20 +38,26 @@ export default function AddLeadMeasurePage() {
         </nav>
 
         {/* WIG Context Re-reminder */}
-        <div className="card-linear p-5 border-primary/20 bg-primary/[0.02] flex items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="text-[10px] font-bold text-primary uppercase tracking-widest">
+        <div className="rounded-lg border border-border bg-white shadow-sm shadow-black/5">
+          {/* 가중목 (WIG) Section */}
+          <div className="p-4">
+            <div className="text-xs font-bold text-primary uppercase tracking-widest">
               현재 가중목
             </div>
-            <div className="text-sm font-bold text-text-primary">
+            <div className="mt-1 text-base font-bold text-text-primary">
               {scoreboard.goalName}
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-[10px] font-bold text-text-muted">
+
+          {/* Divider */}
+          <div className="border-b border-border"></div>
+
+          {/* 후행지표 (Lag Measure) Section */}
+          <div className="p-4">
+            <div className="text-xs font-bold text-text-muted">
               후행지표
             </div>
-            <div className="text-[11px] font-bold text-text-primary/70">
+            <div className="mt-1 text-base text-text-secondary">
               {scoreboard.lagMeasure}
             </div>
           </div>
@@ -124,15 +130,14 @@ export default function AddLeadMeasurePage() {
                 반복 주기
               </label>
               <div className="flex p-1 bg-sub-background rounded-2xl border border-border gap-1">
-                {(["DAILY", "WEEKLY", "MONTHLY"] as const).map((p) => (
+                {(["WEEKLY", "MONTHLY"] as const).map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => {
                       setPeriod(p);
-                      if (p === "DAILY") setTargetValue(3);
-                      if (p === "WEEKLY") setTargetValue(1);
-                      if (p === "MONTHLY") setTargetValue(12);
+                      if (p === "WEEKLY") setTargetValue(3);
+                      if (p === "MONTHLY") setTargetValue(1);
                     }}
                     className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all ${
                       period === p
@@ -140,7 +145,7 @@ export default function AddLeadMeasurePage() {
                         : "text-text-muted hover:text-text-primary"
                     }`}
                   >
-                    {p === "DAILY" ? "매일" : p === "WEEKLY" ? "매주" : "매월"}
+                    {p === "WEEKLY" ? "주 단위" : "월 단위"}
                   </button>
                 ))}
               </div>
@@ -149,19 +154,16 @@ export default function AddLeadMeasurePage() {
             {/* Target Setting */}
             <div className="space-y-4">
               <label className="text-sm block font-bold text-text-primary ml-0.5">
-                {period === "DAILY"
-                  ? "한 주"
-                  : period === "WEEKLY"
-                    ? "이번 달"
-                    : "일 년"}
-                에 몇 번 실행할까요?
+                {period === "WEEKLY"
+                  ? "일주일에 몇 번 반복할까요?"
+                  : "한 달에 몇 번 반복할까요?"}
               </label>
               <div className="flex items-center gap-6 bg-sub-background/50 p-4 rounded-2xl border border-border/50">
                 <div className="flex items-center gap-3">
                   <input
                     type="number"
                     min="1"
-                    max={period === "DAILY" ? 7 : period === "WEEKLY" ? 5 : 365}
+                    max={period === "WEEKLY" ? 7 : 31}
                     value={targetValue}
                     onChange={(e) =>
                       setTargetValue(parseInt(e.target.value) || 1)
@@ -174,11 +176,9 @@ export default function AddLeadMeasurePage() {
                 </div>
                 <div className="h-4 w-px bg-border mx-2" />
                 <p className="text-[11px] text-text-muted font-medium leading-relaxed">
-                  {period === "DAILY"
-                    ? "일주일 중 목표 횟수를 정합니다."
-                    : period === "WEEKLY"
-                      ? "한 달 중 실행 주간 수를 정합니다."
-                      : "지정된 기간 내 총 목표 횟수입니다."}
+                  {period === "WEEKLY"
+                    ? "일주일 동안의 목표 횟수를 설정합니다."
+                    : "한 달 동안의 목표 횟수를 설정합니다."}
                 </p>
               </div>
             </div>
