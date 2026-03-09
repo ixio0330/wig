@@ -43,6 +43,18 @@ interface MockDataContextType {
   logout: () => void;
   updateLog: (measureId: string, date: string, value: boolean) => void;
   updateProfile: (nickname: string) => void;
+  // Management Features
+  createScoreboard: (goalName: string, lagMeasure: string) => void;
+  updateScoreboard: (goalName: string, lagMeasure: string) => void;
+  deleteScoreboard: () => void;
+  archiveScoreboard: () => void;
+  addLeadMeasure: (
+    name: string,
+    targetValue: number,
+    period: "DAILY" | "WEEKLY" | "MONTHLY",
+  ) => void;
+  deleteLeadMeasure: (id: string) => void;
+  archiveLeadMeasure: (id: string) => void;
 }
 
 const MockDataContext = createContext<MockDataContextType | undefined>(
@@ -93,9 +105,7 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [scoreboard, setScoreboard] = useState<Scoreboard | null>(
-    MOCK_SCOREBOARD,
-  );
+  const [scoreboard, setScoreboard] = useState<Scoreboard | null>(null);
 
   // Persistence for prototype
   useEffect(() => {
@@ -147,9 +157,101 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.setItem("wig_user", JSON.stringify(updatedUser));
   };
 
+  const createScoreboard = (goalName: string, lagMeasure: string) => {
+    const newScoreboard: Scoreboard = {
+      id: `sb_${Date.now()}`,
+      goalName,
+      lagMeasure,
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: null,
+      status: "ACTIVE",
+      leadMeasures: [],
+    };
+    setScoreboard(newScoreboard);
+  };
+
+  const updateScoreboard = (goalName: string, lagMeasure: string) => {
+    setScoreboard((prev) => (prev ? { ...prev, goalName, lagMeasure } : null));
+  };
+
+  const archiveScoreboard = () => {
+    setScoreboard(null); // In mock, we just reset it to allow new creation
+  };
+
+  const deleteScoreboard = () => {
+    setScoreboard(null);
+  };
+
+  const addLeadMeasure = (
+    name: string,
+    targetValue: number,
+    period: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY",
+  ) => {
+    if (!scoreboard) return;
+    const newMeasure: LeadMeasure = {
+      id: `lm_${Date.now()}`,
+      name,
+      targetValue,
+      period,
+      status: "ACTIVE",
+      createdAt: new Date().toISOString(),
+      archivedAt: null,
+      logs: [],
+    };
+    setScoreboard((prev) =>
+      prev
+        ? { ...prev, leadMeasures: [...prev.leadMeasures, newMeasure] }
+        : null,
+    );
+  };
+
+  const deleteLeadMeasure = (id: string) => {
+    setScoreboard((prev) =>
+      prev
+        ? {
+            ...prev,
+            leadMeasures: prev.leadMeasures.filter((lm) => lm.id !== id),
+          }
+        : null,
+    );
+  };
+
+  const archiveLeadMeasure = (id: string) => {
+    setScoreboard((prev) =>
+      prev
+        ? {
+            ...prev,
+            leadMeasures: prev.leadMeasures.map((lm) =>
+              lm.id === id
+                ? {
+                    ...lm,
+                    status: "ARCHIVED",
+                    archivedAt: new Date().toISOString(),
+                  }
+                : lm,
+            ),
+          }
+        : null,
+    );
+  };
+
   return (
     <MockDataContext.Provider
-      value={{ user, scoreboard, login, logout, updateLog, updateProfile }}
+      value={{
+        user,
+        scoreboard,
+        login,
+        logout,
+        updateLog,
+        updateProfile,
+        createScoreboard,
+        updateScoreboard,
+        deleteScoreboard,
+        archiveScoreboard,
+        addLeadMeasure,
+        deleteLeadMeasure,
+        archiveLeadMeasure,
+      }}
     >
       {children}
     </MockDataContext.Provider>
