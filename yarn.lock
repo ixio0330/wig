@@ -8120,6 +8120,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^0.577.0":
+  version: 0.577.0
+  resolution: "lucide-react@npm:0.577.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/f5f56d66d5072b69ab74af2196833e35b888c18d92906d75aff81afc0aeabf00a4092a5b9dbc1bddd250bf54ec3c5d5933c7353589b5cb7efd75b21651cda399
+  languageName: node
+  linkType: hard
+
 "lz-string@npm:^1.5.0":
   version: 1.5.0
   resolution: "lz-string@npm:1.5.0"
@@ -10756,6 +10765,7 @@ __metadata:
     eslint: "npm:^9"
     eslint-config-next: "npm:15.4.6"
     jsdom: "npm:^28.1.0"
+    lucide-react: "npm:^0.577.0"
     nanoid: "npm:^5.1.6"
     next: "npm:^16.1.6"
     react: "npm:^19.2.4"
