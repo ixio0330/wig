@@ -20,6 +20,12 @@ export type LeadMeasure = {
   logs: LeadMeasureLog[];
 };
 
+export type MeasureInput = {
+  name: string;
+  period: "WEEKLY" | "MONTHLY";
+  targetValue: number;
+};
+
 export type Scoreboard = {
   id: string;
   goalName: string;
@@ -44,8 +50,16 @@ interface MockDataContextType {
   updateLog: (measureId: string, date: string, value: boolean) => void;
   updateProfile: (nickname: string) => void;
   // Management Features
-  createScoreboard: (goalName: string, lagMeasure: string) => void;
-  updateScoreboard: (goalName: string, lagMeasure: string) => void;
+  createScoreboard: (
+    goalName: string,
+    lagMeasure: string,
+    leadMeasures: MeasureInput[],
+  ) => void;
+  updateScoreboard: (
+    goalName: string,
+    lagMeasure: string,
+    leadMeasures: MeasureInput[],
+  ) => void;
   deleteScoreboard: () => void;
   archiveScoreboard: () => void;
   addLeadMeasure: (
@@ -118,6 +132,8 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
     if (id === "admin" && pw === "1234") {
       setUser(MOCK_USER);
       localStorage.setItem("wig_user", JSON.stringify(MOCK_USER));
+      // For prototype, if there's a user, set the mock scoreboard
+      setScoreboard(MOCK_SCOREBOARD);
       return true;
     }
     return false;
@@ -125,6 +141,7 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = () => {
     setUser(null);
+    setScoreboard(null); // Also clear scoreboard on logout
     localStorage.removeItem("wig_user");
   };
 
@@ -157,7 +174,22 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.setItem("wig_user", JSON.stringify(updatedUser));
   };
 
-  const createScoreboard = (goalName: string, lagMeasure: string) => {
+  const createScoreboard = (
+    goalName: string,
+    lagMeasure: string,
+    leadMeasures: MeasureInput[],
+  ) => {
+    const newLeadMeasures: LeadMeasure[] = leadMeasures.map((m, i) => ({
+      id: `lm_${Date.now()}_${i}`,
+      name: m.name,
+      targetValue: m.targetValue,
+      period: m.period,
+      status: "ACTIVE",
+      createdAt: new Date().toISOString(),
+      archivedAt: null,
+      logs: [],
+    }));
+
     const newScoreboard: Scoreboard = {
       id: `sb_${Date.now()}`,
       goalName,
@@ -165,13 +197,32 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
       startDate: new Date().toISOString().split("T")[0],
       endDate: null,
       status: "ACTIVE",
-      leadMeasures: [],
+      leadMeasures: newLeadMeasures,
     };
     setScoreboard(newScoreboard);
   };
 
-  const updateScoreboard = (goalName: string, lagMeasure: string) => {
-    setScoreboard((prev) => (prev ? { ...prev, goalName, lagMeasure } : null));
+  const updateScoreboard = (
+    goalName: string,
+    lagMeasure: string,
+    leadMeasures: MeasureInput[],
+  ) => {
+    const newLeadMeasures: LeadMeasure[] = leadMeasures.map((m, i) => ({
+      id: `lm_${Date.now()}_${i}`, // In a real app, you'd preserve IDs
+      name: m.name,
+      targetValue: m.targetValue,
+      period: m.period,
+      status: "ACTIVE",
+      createdAt: new Date().toISOString(),
+      archivedAt: null,
+      logs: [],
+    }));
+
+    setScoreboard((prev) =>
+      prev
+        ? { ...prev, goalName, lagMeasure, leadMeasures: newLeadMeasures }
+        : null,
+    );
   };
 
   const archiveScoreboard = () => {
@@ -182,6 +233,7 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
     setScoreboard(null);
   };
 
+  // These are now legacy but kept for potential other uses
   const addLeadMeasure = (
     name: string,
     targetValue: number,

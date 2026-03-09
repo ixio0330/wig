@@ -71,7 +71,7 @@ export default function Home() {
           </div>
           <div className="pt-8">
             <Link
-              href="/setup"
+              href="/setup?mode=create"
               className="btn-linear-primary w-full py-4 flex items-center justify-center gap-2 text-base shadow-lg shadow-primary/20"
             >
               <Plus className="w-5 h-5" />
@@ -100,6 +100,13 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/setup?mode=update"
+              className="px-4 py-2 bg-white border border-border rounded-xl text-xs font-bold text-text-primary hover:border-primary/30 hover:shadow-sm transition-all flex items-center gap-2 group shadow-sm active:scale-95"
+            >
+              <Settings className="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-colors" />
+              <span>점수판 관리</span>
+            </Link>
             <Link
               href="/profile"
               className="px-4 py-2 bg-white border border-border rounded-xl text-xs font-bold text-text-primary hover:border-primary/30 hover:shadow-sm transition-all flex items-center gap-2 group shadow-sm active:scale-95"
@@ -131,14 +138,6 @@ export default function Home() {
                 {scoreboard.lagMeasure}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/setup"
-                className="p-2 bg-sub-background border border-border rounded-lg text-text-muted hover:text-primary transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-              </Link>
-            </div>
           </div>
         </section>
 
@@ -153,13 +152,6 @@ export default function Home() {
               <span className="text-[11px] text-text-muted bg-sub-background px-2 py-1 rounded border border-border">
                 {weekDates[0]} ~ {weekDates[6]}
               </span>
-              <Link
-                href="/add-lead-measure"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold transition-transform active:scale-95 shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                지표 추가
-              </Link>
             </div>
           </div>
 
