@@ -16,7 +16,9 @@
     "test:ui": "vitest --ui",
     "gen:api": "orval",
     "gen:key": "npx web-push generate-vapid-keys --json",
-    "gen:splash": "node scripts/generate-splash.mjs"
+    "gen:splash": "node scripts/generate-splash.mjs",
+    "mig:local": "npx drizzle-kit generate && npx wrangler d1 migrations apply wig-db --local",
+    "mig:remote": "drizzle-kit generate && wrangler d1 migrations apply wig-db --remote"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.33",
