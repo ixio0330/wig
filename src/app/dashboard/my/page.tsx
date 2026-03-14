@@ -41,20 +41,28 @@ export default function MyDashboardPage() {
   const [weekDates, setWeekDates] = useState<string[]>([]);
 
   // 워크스페이스 정보 조회 (API)
-  const { 
-    data: workspaceResponse, 
-    isLoading: isWorkspaceLoading, 
-    error: workspaceError 
-  } = useGetWorkspacesMe();
+  const {
+    data: workspaceResponse,
+    isLoading: isWorkspaceLoading,
+    error: workspaceError,
+  } = useGetWorkspacesMe({
+    query: {
+      retry: (failureCount, error) =>
+        (error as { response?: { status?: number } })?.response?.status !==
+          404 && failureCount < 3,
+    },
+  });
 
   useEffect(() => {
     if (!user) router.push("/");
     setWeekDates(getWeekDates());
   }, [user, router]);
 
-  // 워크스페이스가 없는 경우 (404 등) 캐시가 있을 수 있으므로 error status 체크
-  const is404 = (workspaceError as any)?.response?.status === 404 || workspaceResponse?.status === 404;
-  
+  // 404는 재시도 없이 즉시 빈 상태 UI를 노출한다.
+  const is404 =
+    (workspaceError as { response?: { status?: number } })?.response?.status ===
+      404 || workspaceResponse?.status === 404;
+
   // 404가 확실하면 로딩 중이라도 안내 UI를 바로 보여줌, 그 외 로딩은 스피너
   if (isWorkspaceLoading && !is404) return <LoadingSpinner />;
   if (!user) return null;

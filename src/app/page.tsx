@@ -23,14 +23,7 @@ export default function LoginPage() {
 
     const success = await login(id, pw);
     if (success) {
-      // In a real app, 'isFirstLogin' would determine the next page
-      // For now, let's assume if the user object has it, we use it
-      const savedUser = JSON.parse(localStorage.getItem("wig_user") || "{}");
-      if (savedUser.isFirstLogin) {
-        router.push("/setup");
-      } else {
-        router.push("/dashboard/my"); // Changed to /dashboard/my to match onboarding guide and current structure
-      }
+      router.push("/dashboard/my");
     } else {
       setError("아이디 또는 비밀번호가 올바르지 않습니다.");
       setIsLoading(false);
