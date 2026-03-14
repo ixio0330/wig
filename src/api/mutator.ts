@@ -22,14 +22,18 @@ export const customInstance = <T>(
     ...config, // Spread the rest
   };
 
-  const promise = AXIOS_INSTANCE(axiosConfig).then(({ data }) => data);
+  const promise = AXIOS_INSTANCE(axiosConfig).then((response) => ({
+    data: response.data,
+    status: response.status,
+    headers: response.headers,
+  }));
 
   // @ts-ignore
   promise.cancel = () => {
     source.cancel("Query was cancelled");
   };
 
-  return promise;
+  return promise as any as Promise<T>;
 };
 
 export default customInstance;

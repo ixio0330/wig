@@ -252,6 +252,7 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
         data: { customId: id, password: pw },
       });
 
+      // Now 'res' has 'status' and 'data' because mutator is fixed
       if (res.status === 200 && res.data.user) {
         const loggedInUser: User = {
           id: String(res.data.user.id),
@@ -300,8 +301,7 @@ export const MockDataProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       return {
         success: false,
-        message:
-          (res as any).data?.error?.message || "비밀번호 변경에 실패했습니다.",
+        message: "비밀번호 변경에 실패했습니다.",
       };
     } catch (error: any) {
       return {
