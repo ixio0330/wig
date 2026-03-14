@@ -35,3 +35,32 @@ export const pushSubscriptions = sqliteTable("push_subscriptions", {
     .notNull()
     .default(sql`(strftime('%s', 'now'))`),
 });
+
+export const workspaces = sqliteTable("workspaces", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
+});
+
+export const workspaceMembers = sqliteTable("workspace_members", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: text("role", { enum: ["ADMIN", "MEMBER"] })
+    .notNull()
+    .default("MEMBER"),
+  privacyLevel: text("privacy_level", {
+    enum: ["PUBLIC", "SUMMARY", "PRIVATE"],
+  })
+    .notNull()
+    .default("PUBLIC"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
+});
