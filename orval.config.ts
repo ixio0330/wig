@@ -2,13 +2,14 @@ import { defineConfig } from "orval";
 
 export default defineConfig({
   wig: {
-    input: "./src/api-spec/openapi.yaml",
+    input: {
+      target: "./src/api-spec/openapi.yaml",
+    },
     output: {
       target: "./src/api/generated/wig.ts",
       mode: "tags-split",
       client: "react-query",
       baseUrl: "/api",
-      mock: true,
       override: {
         mutator: {
           path: "./src/api/mutator.ts",

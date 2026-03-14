@@ -1,20 +1,28 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { type AxiosRequestConfig, type AxiosHeaders } from "axios";
 
-export const AXIOS_INSTANCE = axios.create({
-  baseURL: "/api",
+// API 서버의 기본 URL
+const AXIOS_INSTANCE = axios.create({
+  baseURL: "http://localhost:3000", // 백엔드 서버 주소
 });
 
 export const customInstance = <T>(
-  config: AxiosRequestConfig,
-  options?: AxiosRequestConfig,
+  url: string,
+  config: any, // Use any to allow RequestInit from Orval
 ): Promise<T> => {
   const source = axios.CancelToken.source();
-  const promise = AXIOS_INSTANCE({
-    ...config,
-    ...options,
+  
+  // Convert RequestInit (fetch style) to AxiosRequestConfig
+  const axiosConfig: AxiosRequestConfig = {
+    url,
+    method: config.method,
+    headers: config.headers,
+    data: config.body ? JSON.parse(config.body) : undefined,
     cancelToken: source.token,
-    withCredentials: true, // wig_sid 쿠키 전달을 위해 필수
-  }).then(({ data }) => data);
+    withCredentials: true,
+    ...config, // Spread the rest
+  };
+
+  const promise = AXIOS_INSTANCE(axiosConfig).then(({ data }) => data);
 
   // @ts-ignore
   promise.cancel = () => {
