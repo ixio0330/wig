@@ -63,6 +63,76 @@ export interface LeadMeasure {
   archivedAt?: string | null;
 }
 
+export interface WeeklyAchievement {
+  achieved?: number;
+  total?: number;
+}
+
+export type LeadMeasureListItem = LeadMeasure & {
+  weeklyAchievement?: WeeklyAchievement;
+};
+
+export type LeadMeasureCreateRequestPeriod = typeof LeadMeasureCreateRequestPeriod[keyof typeof LeadMeasureCreateRequestPeriod];
+
+
+export const LeadMeasureCreateRequestPeriod = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
+
+export interface LeadMeasureCreateRequest {
+  name: string;
+  /** @minimum 1 */
+  targetValue: number;
+  period: LeadMeasureCreateRequestPeriod;
+}
+
+export type LeadMeasureUpdateRequestPeriod = typeof LeadMeasureUpdateRequestPeriod[keyof typeof LeadMeasureUpdateRequestPeriod];
+
+
+export const LeadMeasureUpdateRequestPeriod = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
+
+export interface LeadMeasureUpdateRequest {
+  name?: string;
+  /** @minimum 1 */
+  targetValue?: number;
+  period?: LeadMeasureUpdateRequestPeriod;
+}
+
+export interface DailyLog {
+  id?: number;
+  leadMeasureId?: number;
+  logDate?: string;
+  value?: boolean;
+  createdAt?: string;
+}
+
+export interface DailyLogUpsertRequest {
+  value: boolean;
+}
+
+export type WeeklyLogItemLogs = {[key: string]: boolean | null};
+
+export interface WeeklyLogItem {
+  id?: number;
+  name?: string;
+  targetValue?: number;
+  logs?: WeeklyLogItemLogs;
+  achieved?: number;
+  achievementRate?: number;
+}
+
+export interface WeeklyLogsResponse {
+  weekStart?: string;
+  weekEnd?: string;
+  leadMeasures?: WeeklyLogItem[];
+}
+
 export type ScoreboardSummaryStatus = typeof ScoreboardSummaryStatus[keyof typeof ScoreboardSummaryStatus];
 
 
@@ -175,5 +245,26 @@ export const PostScoreboardsIdArchive200Status = {
 export type PostScoreboardsIdArchive200 = {
   id: number;
   status: PostScoreboardsIdArchive200Status;
+};
+
+export type GetScoreboardsScoreboardIdLeadMeasuresParams = {
+status?: GetScoreboardsScoreboardIdLeadMeasuresStatus;
+};
+
+export type GetScoreboardsScoreboardIdLeadMeasuresStatus = typeof GetScoreboardsScoreboardIdLeadMeasuresStatus[keyof typeof GetScoreboardsScoreboardIdLeadMeasuresStatus];
+
+
+export const GetScoreboardsScoreboardIdLeadMeasuresStatus = {
+  active: 'active',
+  all: 'all',
+} as const;
+
+export type DeleteLeadMeasuresId200 = {
+  warning: string;
+  deleted: boolean;
+};
+
+export type GetScoreboardsScoreboardIdLogsWeeklyParams = {
+weekStart?: string;
 };
 
