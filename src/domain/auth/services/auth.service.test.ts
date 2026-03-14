@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthService } from "./services/auth.service";
+import { AuthService } from "./auth.service";
 
 describe("Auth Service - login", () => {
   const mockStorage = {
@@ -99,7 +99,7 @@ describe("Auth Service - changePassword", () => {
     mockStorage.findUserById.mockResolvedValue(mockUser);
 
     await expect(
-      service.changePassword(1, "wrong-pass", "new-pass")
+      service.changePassword(1, "wrong-pass", "new-pass"),
     ).rejects.toThrow("현재 비밀번호가 올바르지 않습니다");
   });
 });
