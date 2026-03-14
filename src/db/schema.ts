@@ -153,17 +153,26 @@ export const leadMeasuresRelations = relations(leadMeasures, ({ one, many }) => 
   dailyLogs: many(dailyLogs),
 }));
 
-export const dailyLogs = sqliteTable("daily_logs", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  leadMeasureId: integer("lead_measure_id")
-    .notNull()
-    .references(() => leadMeasures.id, { onDelete: "cascade" }),
-  logDate: text("log_date").notNull(),
-  value: integer("value", { mode: "boolean" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(strftime('%s', 'now'))`),
-});
+export const dailyLogs = sqliteTable(
+  "daily_logs",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    leadMeasureId: integer("lead_measure_id")
+      .notNull()
+      .references(() => leadMeasures.id, { onDelete: "cascade" }),
+    logDate: text("log_date").notNull(),
+    value: integer("value", { mode: "boolean" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+  },
+  (table) => [
+    uniqueIndex("daily_logs_lead_measure_date_unique").on(
+      table.leadMeasureId,
+      table.logDate,
+    ),
+  ],
+);
 
 export const dailyLogsRelations = relations(dailyLogs, ({ one }) => ({
   leadMeasure: one(leadMeasures, {
