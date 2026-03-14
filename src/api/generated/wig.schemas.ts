@@ -34,6 +34,76 @@ export interface WorkspaceMember {
   createdAt?: string;
 }
 
+export type LeadMeasurePeriod = typeof LeadMeasurePeriod[keyof typeof LeadMeasurePeriod];
+
+
+export const LeadMeasurePeriod = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
+
+export type LeadMeasureStatus = typeof LeadMeasureStatus[keyof typeof LeadMeasureStatus];
+
+
+export const LeadMeasureStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export interface LeadMeasure {
+  id?: number;
+  scoreboardId?: number;
+  name?: string;
+  targetValue?: number;
+  period?: LeadMeasurePeriod;
+  status?: LeadMeasureStatus;
+  createdAt?: string;
+  /** @nullable */
+  archivedAt?: string | null;
+}
+
+export type ScoreboardSummaryStatus = typeof ScoreboardSummaryStatus[keyof typeof ScoreboardSummaryStatus];
+
+
+export const ScoreboardSummaryStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export interface ScoreboardSummary {
+  id?: number;
+  userId?: number;
+  workspaceId?: number;
+  goalName?: string;
+  lagMeasure?: string;
+  status?: ScoreboardSummaryStatus;
+  startDate?: string;
+  /** @nullable */
+  endDate?: string | null;
+  createdAt?: string;
+}
+
+export type Scoreboard = ScoreboardSummary & {
+  leadMeasures?: LeadMeasure[];
+};
+
+export interface ScoreboardCreateRequest {
+  goalName: string;
+  lagMeasure: string;
+  startDate: string;
+  /** @nullable */
+  endDate?: string | null;
+}
+
+export interface ScoreboardUpdateRequest {
+  goalName?: string;
+  lagMeasure?: string;
+  startDate?: string;
+  /** @nullable */
+  endDate?: string | null;
+}
+
 /**
  * 유효성 검사 실패 시 필드별 상세 오류 (선택)
  */
@@ -93,5 +163,17 @@ export type PostWorkspacesBody = {
 
 export type PostWorkspacesJoinBody = {
   workspaceId: number;
+};
+
+export type PostScoreboardsIdArchive200Status = typeof PostScoreboardsIdArchive200Status[keyof typeof PostScoreboardsIdArchive200Status];
+
+
+export const PostScoreboardsIdArchive200Status = {
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export type PostScoreboardsIdArchive200 = {
+  id: number;
+  status: PostScoreboardsIdArchive200Status;
 };
 
