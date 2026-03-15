@@ -15,6 +15,7 @@ import PushSubscriptionManager from "@/components/PushSubscriptionManager";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/context/ToastContext";
+import { validatePassword } from "@/domain/auth/validation";
 import { getApiErrorMessage } from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -28,7 +29,6 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 interface MenuItem {
   id: string;
@@ -41,7 +41,6 @@ interface MenuItem {
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersMe();
@@ -94,8 +93,8 @@ export default function ProfilePage() {
       // Continue logout flow even when server-side logout fails.
     } finally {
       window.localStorage.removeItem("wig_user");
-      router.push("/");
-      router.refresh();
+      queryClient.clear();
+      window.location.replace("/");
     }
   };
 
@@ -152,10 +151,25 @@ export default function ProfilePage() {
           description: "계정 보안을 위해 비밀번호를 재설정합니다.",
           danger: false,
           onClick: async () => {
-            const currentPw = prompt("현재 비밀번호를 입력하세요:");
-            if (!currentPw) return;
-            const newPw = prompt("새로운 비밀번호를 입력하세요:");
-            if (!newPw) return;
+            const currentPw = prompt("현재 비밀번호를 입력하세요:")?.trim();
+            if (!currentPw) {
+              showToast("error", "현재 비밀번호를 입력해주세요.");
+              return;
+            }
+
+            const newPw = prompt("새로운 비밀번호를 입력하세요:")?.trim();
+            if (!newPw) {
+              showToast("error", "새 비밀번호를 입력해주세요.");
+              return;
+            }
+
+            if (!validatePassword(newPw)) {
+              showToast(
+                "error",
+                "비밀번호는 8자 이상의 영문, 숫자, 허용된 특수문자 조합이어야 합니다.",
+              );
+              return;
+            }
 
             try {
               const response = await changePasswordMutation.mutateAsync({
