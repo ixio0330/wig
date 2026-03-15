@@ -8,9 +8,9 @@ import {
 import { LeadMeasureStorage } from "@/domain/lead-measure/storage/lead-measure.storage";
 import { ScoreboardStorage } from "@/domain/scoreboard/storage/scoreboard.storage";
 import { WorkspaceStorage } from "@/domain/workspace/storage/workspace.storage";
-import { apiError, apiSuccess } from "@/lib/api-response";
-import { getSession } from "@/lib/auth";
-import { withErrorHandler } from "@/lib/with-error-handler";
+import { apiError, apiSuccess } from "@/lib/server/api-response";
+import { getSession } from "@/lib/server/auth";
+import { withErrorHandler } from "@/lib/server/with-error-handler";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
@@ -25,7 +25,7 @@ const createService = (db: ReturnType<typeof getDb>) =>
 export const PUT = withErrorHandler(
   async (
     request: Request,
-    context: { params: Promise<{ leadMeasureId: string; date: string }> },
+    context: { params: Promise<{ id: string; date: string }> },
   ) => {
     const { env } = getCloudflareContext();
     const db = getDb(env.DB);
@@ -35,7 +35,11 @@ export const PUT = withErrorHandler(
       return apiError("UNAUTHORIZED");
     }
 
-    const params = dailyLogDateParamSchema.safeParse(await context.params);
+    const routeParams = await context.params;
+    const params = dailyLogDateParamSchema.safeParse({
+      leadMeasureId: routeParams.id,
+      date: routeParams.date,
+    });
     if (!params.success) {
       return apiError("VALIDATION_ERROR", params.error.flatten().fieldErrors);
     }
@@ -58,7 +62,7 @@ export const PUT = withErrorHandler(
 export const DELETE = withErrorHandler(
   async (
     _request: Request,
-    context: { params: Promise<{ leadMeasureId: string; date: string }> },
+    context: { params: Promise<{ id: string; date: string }> },
   ) => {
     const { env } = getCloudflareContext();
     const db = getDb(env.DB);
@@ -68,7 +72,11 @@ export const DELETE = withErrorHandler(
       return apiError("UNAUTHORIZED");
     }
 
-    const params = dailyLogDateParamSchema.safeParse(await context.params);
+    const routeParams = await context.params;
+    const params = dailyLogDateParamSchema.safeParse({
+      leadMeasureId: routeParams.id,
+      date: routeParams.date,
+    });
     if (!params.success) {
       return apiError("VALIDATION_ERROR", params.error.flatten().fieldErrors);
     }

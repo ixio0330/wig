@@ -9,9 +9,9 @@ import {
 import { LeadMeasureStorage } from "@/domain/lead-measure/storage/lead-measure.storage";
 import { ScoreboardStorage } from "@/domain/scoreboard/storage/scoreboard.storage";
 import { WorkspaceStorage } from "@/domain/workspace/storage/workspace.storage";
-import { apiError, apiSuccess } from "@/lib/api-response";
-import { getSession } from "@/lib/auth";
-import { withErrorHandler } from "@/lib/with-error-handler";
+import { apiError, apiSuccess } from "@/lib/server/api-response";
+import { getSession } from "@/lib/server/auth";
+import { withErrorHandler } from "@/lib/server/with-error-handler";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const createService = (db: ReturnType<typeof getDb>) =>
@@ -23,10 +23,7 @@ const createService = (db: ReturnType<typeof getDb>) =>
   );
 
 export const GET = withErrorHandler(
-  async (
-    request: Request,
-    context: { params: Promise<{ scoreboardId: string }> },
-  ) => {
+  async (request: Request, context: { params: Promise<{ id: string }> }) => {
     const { env } = getCloudflareContext();
     const db = getDb(env.DB);
     const session = await getSession(db);
@@ -35,7 +32,10 @@ export const GET = withErrorHandler(
       return apiError("UNAUTHORIZED");
     }
 
-    const params = scoreboardIdParamSchema.safeParse(await context.params);
+    const routeParams = await context.params;
+    const params = scoreboardIdParamSchema.safeParse({
+      scoreboardId: routeParams.id,
+    });
     const query = leadMeasureStatusQuerySchema.safeParse(
       Object.fromEntries(new URL(request.url).searchParams.entries()),
     );
@@ -58,10 +58,7 @@ export const GET = withErrorHandler(
 );
 
 export const POST = withErrorHandler(
-  async (
-    request: Request,
-    context: { params: Promise<{ scoreboardId: string }> },
-  ) => {
+  async (request: Request, context: { params: Promise<{ id: string }> }) => {
     const { env } = getCloudflareContext();
     const db = getDb(env.DB);
     const session = await getSession(db);
@@ -70,7 +67,10 @@ export const POST = withErrorHandler(
       return apiError("UNAUTHORIZED");
     }
 
-    const params = scoreboardIdParamSchema.safeParse(await context.params);
+    const routeParams = await context.params;
+    const params = scoreboardIdParamSchema.safeParse({
+      scoreboardId: routeParams.id,
+    });
     if (!params.success) {
       return apiError("VALIDATION_ERROR", params.error.flatten().fieldErrors);
     }
