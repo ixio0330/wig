@@ -6,21 +6,16 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
-  useInfiniteQuery,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
-  DefinedUseInfiniteQueryResult,
   DefinedUseQueryResult,
-  InfiniteData,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
-  UseInfiniteQueryOptions,
-  UseInfiniteQueryResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
@@ -96,12 +91,6 @@ export const getDashboardTeam = async (params?: GetDashboardTeamParams, options?
 
 
 
-export const getGetDashboardTeamInfiniteQueryKey = (params?: GetDashboardTeamParams,) => {
-    return [
-    'infinite', `/api/dashboard/team`, ...(params ? [params] : [])
-    ] as const;
-    }
-
 export const getGetDashboardTeamQueryKey = (params?: GetDashboardTeamParams,) => {
     return [
     `/api/dashboard/team`, ...(params ? [params] : [])
@@ -109,71 +98,6 @@ export const getGetDashboardTeamQueryKey = (params?: GetDashboardTeamParams,) =>
     }
 
     
-export const getGetDashboardTeamInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof getDashboardTeam>>, GetDashboardTeamParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(params?: GetDashboardTeamParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getDashboardTeam>>, TError, TData, QueryKey, GetDashboardTeamParams['cursor']>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetDashboardTeamInfiniteQueryKey(params);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardTeam>>, QueryKey, GetDashboardTeamParams['cursor']> = ({ signal, pageParam }) => getDashboardTeam({...params, 'cursor': pageParam || params?.['cursor']}, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof getDashboardTeam>>, TError, TData, QueryKey, GetDashboardTeamParams['cursor']> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetDashboardTeamInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardTeam>>>
-export type GetDashboardTeamInfiniteQueryError = UnauthorizedErrorResponse | ErrorResponse
-
-
-export function useGetDashboardTeamInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getDashboardTeam>>, GetDashboardTeamParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- params: undefined |  GetDashboardTeamParams, options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getDashboardTeam>>, TError, TData, QueryKey, GetDashboardTeamParams['cursor']>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDashboardTeam>>,
-          TError,
-          Awaited<ReturnType<typeof getDashboardTeam>>, QueryKey
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDashboardTeamInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getDashboardTeam>>, GetDashboardTeamParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- params?: GetDashboardTeamParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getDashboardTeam>>, TError, TData, QueryKey, GetDashboardTeamParams['cursor']>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDashboardTeam>>,
-          TError,
-          Awaited<ReturnType<typeof getDashboardTeam>>, QueryKey
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDashboardTeamInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getDashboardTeam>>, GetDashboardTeamParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- params?: GetDashboardTeamParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getDashboardTeam>>, TError, TData, QueryKey, GetDashboardTeamParams['cursor']>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary 팀 대시보드 조회
- */
-
-export function useGetDashboardTeamInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getDashboardTeam>>, GetDashboardTeamParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- params?: GetDashboardTeamParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getDashboardTeam>>, TError, TData, QueryKey, GetDashboardTeamParams['cursor']>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetDashboardTeamInfiniteQueryOptions(params,options)
-
-  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
 export const getGetDashboardTeamQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardTeam>>, TError = UnauthorizedErrorResponse | ErrorResponse>(params?: GetDashboardTeamParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardTeam>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 

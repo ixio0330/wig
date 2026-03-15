@@ -6,23 +6,18 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
-  useInfiniteQuery,
   useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
-  DefinedUseInfiniteQueryResult,
   DefinedUseQueryResult,
-  InfiniteData,
   MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
-  UseInfiniteQueryOptions,
-  UseInfiniteQueryResult,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -96,12 +91,6 @@ export const getScoreboardsActive = async ( options?: RequestInit): Promise<getS
 
 
 
-export const getGetScoreboardsActiveInfiniteQueryKey = () => {
-    return [
-    'infinite', `/api/scoreboards/active`
-    ] as const;
-    }
-
 export const getGetScoreboardsActiveQueryKey = () => {
     return [
     `/api/scoreboards/active`
@@ -109,71 +98,6 @@ export const getGetScoreboardsActiveQueryKey = () => {
     }
 
     
-export const getGetScoreboardsActiveInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsActive>>>, TError = UnauthorizedErrorResponse | ErrorResponse>( options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsActive>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetScoreboardsActiveInfiniteQueryKey();
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScoreboardsActive>>> = ({ signal }) => getScoreboardsActive({ signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsActive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetScoreboardsActiveInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof getScoreboardsActive>>>
-export type GetScoreboardsActiveInfiniteQueryError = UnauthorizedErrorResponse | ErrorResponse
-
-
-export function useGetScoreboardsActiveInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsActive>>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
-  options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsActive>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getScoreboardsActive>>,
-          TError,
-          Awaited<ReturnType<typeof getScoreboardsActive>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetScoreboardsActiveInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsActive>>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
-  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsActive>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getScoreboardsActive>>,
-          TError,
-          Awaited<ReturnType<typeof getScoreboardsActive>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetScoreboardsActiveInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsActive>>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
-  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsActive>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary 현재 활성 점수판 조회
- */
-
-export function useGetScoreboardsActiveInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsActive>>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
-  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsActive>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetScoreboardsActiveInfiniteQueryOptions(options)
-
-  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
 export const getGetScoreboardsActiveQueryOptions = <TData = Awaited<ReturnType<typeof getScoreboardsActive>>, TError = UnauthorizedErrorResponse | ErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsActive>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
@@ -284,12 +208,6 @@ export const getScoreboards = async ( options?: RequestInit): Promise<getScorebo
 
 
 
-export const getGetScoreboardsInfiniteQueryKey = () => {
-    return [
-    'infinite', `/api/scoreboards`
-    ] as const;
-    }
-
 export const getGetScoreboardsQueryKey = () => {
     return [
     `/api/scoreboards`
@@ -297,71 +215,6 @@ export const getGetScoreboardsQueryKey = () => {
     }
 
     
-export const getGetScoreboardsInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof getScoreboards>>>, TError = UnauthorizedErrorResponse>( options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboards>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetScoreboardsInfiniteQueryKey();
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScoreboards>>> = ({ signal }) => getScoreboards({ signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboards>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetScoreboardsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof getScoreboards>>>
-export type GetScoreboardsInfiniteQueryError = UnauthorizedErrorResponse
-
-
-export function useGetScoreboardsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboards>>>, TError = UnauthorizedErrorResponse>(
-  options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboards>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getScoreboards>>,
-          TError,
-          Awaited<ReturnType<typeof getScoreboards>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetScoreboardsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboards>>>, TError = UnauthorizedErrorResponse>(
-  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboards>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getScoreboards>>,
-          TError,
-          Awaited<ReturnType<typeof getScoreboards>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetScoreboardsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboards>>>, TError = UnauthorizedErrorResponse>(
-  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboards>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary 보관된 점수판 목록 조회
- */
-
-export function useGetScoreboardsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboards>>>, TError = UnauthorizedErrorResponse>(
-  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboards>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetScoreboardsInfiniteQueryOptions(options)
-
-  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
 export const getGetScoreboardsQueryOptions = <TData = Awaited<ReturnType<typeof getScoreboards>>, TError = UnauthorizedErrorResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboards>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 

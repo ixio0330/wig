@@ -6,23 +6,18 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
-  useInfiniteQuery,
   useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
-  DefinedUseInfiniteQueryResult,
   DefinedUseQueryResult,
-  InfiniteData,
   MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
-  UseInfiniteQueryOptions,
-  UseInfiniteQueryResult,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -311,13 +306,6 @@ export const getScoreboardsScoreboardIdLogsWeekly = async (scoreboardId: number,
 
 
 
-export const getGetScoreboardsScoreboardIdLogsWeeklyInfiniteQueryKey = (scoreboardId: number,
-    params?: GetScoreboardsScoreboardIdLogsWeeklyParams,) => {
-    return [
-    'infinite', `/api/scoreboards/${scoreboardId}/logs/weekly`, ...(params ? [params] : [])
-    ] as const;
-    }
-
 export const getGetScoreboardsScoreboardIdLogsWeeklyQueryKey = (scoreboardId: number,
     params?: GetScoreboardsScoreboardIdLogsWeeklyParams,) => {
     return [
@@ -326,76 +314,6 @@ export const getGetScoreboardsScoreboardIdLogsWeeklyQueryKey = (scoreboardId: nu
     }
 
     
-export const getGetScoreboardsScoreboardIdLogsWeeklyInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(scoreboardId: number,
-    params?: GetScoreboardsScoreboardIdLogsWeeklyParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError, TData, QueryKey, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetScoreboardsScoreboardIdLogsWeeklyInfiniteQueryKey(scoreboardId,params);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, QueryKey, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']> = ({ signal, pageParam }) => getScoreboardsScoreboardIdLogsWeekly(scoreboardId,{...params, 'cursor': pageParam || params?.['cursor']}, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(scoreboardId), ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError, TData, QueryKey, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetScoreboardsScoreboardIdLogsWeeklyInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>>
-export type GetScoreboardsScoreboardIdLogsWeeklyInfiniteQueryError = UnauthorizedErrorResponse | ErrorResponse
-
-
-export function useGetScoreboardsScoreboardIdLogsWeeklyInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- scoreboardId: number,
-    params: undefined |  GetScoreboardsScoreboardIdLogsWeeklyParams, options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError, TData, QueryKey, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>,
-          TError,
-          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, QueryKey
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetScoreboardsScoreboardIdLogsWeeklyInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- scoreboardId: number,
-    params?: GetScoreboardsScoreboardIdLogsWeeklyParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError, TData, QueryKey, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>,
-          TError,
-          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, QueryKey
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetScoreboardsScoreboardIdLogsWeeklyInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- scoreboardId: number,
-    params?: GetScoreboardsScoreboardIdLogsWeeklyParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError, TData, QueryKey, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary 주간 기록 조회
- */
-
-export function useGetScoreboardsScoreboardIdLogsWeeklyInfinite<TData = InfiniteData<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>, TError = UnauthorizedErrorResponse | ErrorResponse>(
- scoreboardId: number,
-    params?: GetScoreboardsScoreboardIdLogsWeeklyParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError, TData, QueryKey, GetScoreboardsScoreboardIdLogsWeeklyParams['cursor']>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetScoreboardsScoreboardIdLogsWeeklyInfiniteQueryOptions(scoreboardId,params,options)
-
-  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
 export const getGetScoreboardsScoreboardIdLogsWeeklyQueryOptions = <TData = Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError = UnauthorizedErrorResponse | ErrorResponse>(scoreboardId: number,
     params?: GetScoreboardsScoreboardIdLogsWeeklyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsWeekly>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
