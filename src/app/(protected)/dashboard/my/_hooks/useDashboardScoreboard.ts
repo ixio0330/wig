@@ -11,11 +11,17 @@ import {
   useGetScoreboardsScoreboardIdLogsWeekly,
   usePutLeadMeasuresLeadMeasureIdLogsDate,
 } from "@/api/generated/daily-log/daily-log";
+import { getGetDashboardTeamQueryKey } from "@/api/generated/dashboard/dashboard";
 import {
   getGetScoreboardsActiveQueryKey,
   useGetScoreboardsActive,
 } from "@/api/generated/scoreboard/scoreboard";
+import { GetDashboardTeamParams } from "@/api/generated/wig.schemas";
 import { useGetWorkspacesMe } from "@/api/generated/workspace/workspace";
+import {
+  getTodayInKst,
+  getWeekDates,
+} from "@/app/(protected)/dashboard/my/_lib/week";
 import { useToast } from "@/context/ToastContext";
 import {
   getApiErrorMessage,
@@ -24,9 +30,10 @@ import {
 } from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { getWeekDates } from "@/app/(protected)/dashboard/my/_lib/week";
 
-type WeeklyLogsQueryData = getScoreboardsScoreboardIdLogsWeeklyResponse200 | undefined;
+type WeeklyLogsQueryData =
+  | getScoreboardsScoreboardIdLogsWeeklyResponse200
+  | undefined;
 type DailyLogValue = boolean | null;
 
 const getNextLogValue = (value: DailyLogValue): DailyLogValue => {
@@ -59,7 +66,9 @@ const updateWeeklyLogsCache = (
         const achieved = Object.values(nextLogs).filter(Boolean).length;
         const targetValue = leadMeasure.targetValue ?? 0;
         const achievementRate =
-          targetValue > 0 ? Math.round((achieved / targetValue) * 1000) / 10 : 0;
+          targetValue > 0
+            ? Math.round((achieved / targetValue) * 1000) / 10
+            : 0;
 
         return {
           ...leadMeasure,
@@ -77,7 +86,7 @@ export const useDashboardScoreboard = () => {
   const queryClient = useQueryClient();
   const [pendingLogKey, setPendingLogKey] = useState<string | null>(null);
   const weekDates = getWeekDates();
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayInKst();
 
   const {
     data: workspaceResponse,
@@ -102,7 +111,9 @@ export const useDashboardScoreboard = () => {
   });
 
   const activeScoreboard =
-    activeScoreboardResponse?.status === 200 ? activeScoreboardResponse.data : null;
+    activeScoreboardResponse?.status === 200
+      ? activeScoreboardResponse.data
+      : null;
   const scoreboardId = toNumberId(activeScoreboard?.id);
   const weeklyLogsQueryKey =
     scoreboardId !== null
@@ -110,8 +121,16 @@ export const useDashboardScoreboard = () => {
       : null;
   const monthlyLogsQueryKey =
     scoreboardId !== null
-      ? getGetScoreboardsScoreboardIdLogsMonthlyQueryKey(scoreboardId, undefined)
+      ? getGetScoreboardsScoreboardIdLogsMonthlyQueryKey(
+          scoreboardId,
+          undefined,
+        )
       : null;
+  const dashboardTeamQueryKey = getGetDashboardTeamQueryKey(
+    weekDates.length === 7
+      ? ({ weekStart: weekDates[0] } satisfies GetDashboardTeamParams)
+      : undefined,
+  );
 
   const { data: weeklyLogsResponse, isLoading: isWeeklyLogsLoading } =
     useGetScoreboardsScoreboardIdLogsWeekly(scoreboardId ?? 0, undefined, {
@@ -135,7 +154,9 @@ export const useDashboardScoreboard = () => {
     workspaceResponse?.status === 200 ? workspaceResponse.data : null;
 
   const weeklyLeadMeasures =
-    weeklyLogsResponse?.status === 200 ? weeklyLogsResponse.data.leadMeasures ?? [] : [];
+    weeklyLogsResponse?.status === 200
+      ? (weeklyLogsResponse.data.leadMeasures ?? [])
+      : [];
   const monthlySummary =
     monthlyLogsResponse?.status === 200
       ? monthlyLogsResponse.data.summary
@@ -157,10 +178,13 @@ export const useDashboardScoreboard = () => {
     ]),
   );
 
-  const weeklyTotalRate = weeklyTargetMeasures.reduce((accumulator, leadMeasure) => {
-    const weekly = weeklyById.get(toNumberId(leadMeasure.id));
-    return accumulator + (weekly?.achievementRate ?? 0);
-  }, 0);
+  const weeklyTotalRate = weeklyTargetMeasures.reduce(
+    (accumulator, leadMeasure) => {
+      const weekly = weeklyById.get(toNumberId(leadMeasure.id));
+      return accumulator + (weekly?.achievementRate ?? 0);
+    },
+    0,
+  );
   const weeklyOverallRate =
     weeklyTargetMeasures.length > 0
       ? Math.round(weeklyTotalRate / weeklyTargetMeasures.length)
@@ -190,7 +214,12 @@ export const useDashboardScoreboard = () => {
     if (weeklyLogsQueryKey !== null) {
       queryClient.setQueryData<WeeklyLogsQueryData>(
         weeklyLogsQueryKey,
-        updateWeeklyLogsCache(previousWeeklyLogs, leadMeasureId, date, nextValue),
+        updateWeeklyLogsCache(
+          previousWeeklyLogs,
+          leadMeasureId,
+          date,
+          nextValue,
+        ),
       );
     }
 
@@ -236,6 +265,9 @@ export const useDashboardScoreboard = () => {
               queryKey: monthlyLogsQueryKey,
             })
           : Promise.resolve(),
+        queryClient.invalidateQueries({
+          queryKey: dashboardTeamQueryKey,
+        }),
       ]);
 
       setPendingLogKey((value) => (value === currentLogKey ? null : value));
@@ -247,8 +279,7 @@ export const useDashboardScoreboard = () => {
     activeScoreboard,
     hasNoScoreboard: isScoreboard404 || !activeScoreboard,
     hasNoWorkspace: isWorkspace404,
-    isLoading:
-      (isWorkspaceLoading || isScoreboardLoading) && !isWorkspace404,
+    isLoading: (isWorkspaceLoading || isScoreboardLoading) && !isWorkspace404,
     isLogPending:
       pendingLogKey !== null ||
       updateLogMutation.isPending ||

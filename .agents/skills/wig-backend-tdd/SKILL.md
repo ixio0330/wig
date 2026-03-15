@@ -30,6 +30,7 @@ If docs conflict with code, verify the implementation and trust the current code
 - Business logic should stay in `src/domain/*/services`.
 - Auth-required routes should use `getSession`.
 - SQL must use Prepared Statement patterns through Drizzle or binding.
+- Keep backend date storage and API-facing canonical date values in UTC unless a domain doc explicitly says otherwise.
 
 For detailed file paths and doc priorities, read `references/backend-rules.md`.
 
