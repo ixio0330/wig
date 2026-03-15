@@ -342,12 +342,9 @@ export default function MyDashboardPage() {
                         return (
                           <tr key={leadMeasure.id} className="bg-white">
                             <td className="py-4 px-5">
-                              <Link
-                                href={`/measure/${leadMeasure.id}`}
-                                className="block font-semibold text-text-primary hover:text-primary transition-colors truncate text-sm"
-                              >
+                              <p className="block font-semibold text-text-primary truncate text-sm">
                                 {leadMeasure.name}
-                              </Link>
+                              </p>
                               <span className="text-[10px] text-text-muted">
                                 목표 {targetValue}회 /{" "}
                                 {leadMeasure.period === "DAILY"
