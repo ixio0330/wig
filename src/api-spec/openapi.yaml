@@ -582,11 +582,6 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/DailyLog' }
-        '400':
-          description: 미래 날짜 기록 시도
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
         '403':
           description: ARCHIVED 선행지표 기록 시도
           content:
@@ -765,7 +760,9 @@ components:
       type: object
       required: [value]
       properties:
-        value: { type: boolean }
+        value:
+          type: boolean
+          enum: [true]
 
     WeeklyLogItem:
       type: object

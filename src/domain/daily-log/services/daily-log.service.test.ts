@@ -21,17 +21,27 @@ describe("DailyLogService", () => {
     vi.clearAllMocks();
   });
 
-  it("미래 날짜 기록 시 400 에러를 던진다", async () => {
+  it("미래 날짜도 기록할 수 있다", async () => {
     findUserWorkspace.mockResolvedValue({ id: 1 });
     findOwnedLeadMeasure.mockResolvedValue({
       id: 10,
       status: "ACTIVE",
       scoreboard: { id: 2, status: "ACTIVE" },
     });
+    upsertLog.mockResolvedValue({
+      id: 1,
+      leadMeasureId: 10,
+      logDate: "2999-01-01",
+      value: true,
+    });
 
-    await expect(
-      service.upsertLog(10, 100, "2999-01-01", true),
-    ).rejects.toThrow("FUTURE_DATE_NOT_ALLOWED");
+    await expect(service.upsertLog(10, 100, "2999-01-01", true)).resolves.toEqual({
+      id: 1,
+      leadMeasureId: 10,
+      logDate: "2999-01-01",
+      value: true,
+    });
+    expect(upsertLog).toHaveBeenCalledWith(10, "2999-01-01", true);
   });
 
   it("ARCHIVED 선행지표에는 기록할 수 없다", async () => {

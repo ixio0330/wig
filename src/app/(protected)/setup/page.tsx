@@ -1,111 +1,46 @@
 "use client";
 
+import { useScoreboardSetup } from "@/app/(protected)/setup/_hooks/useScoreboardSetup";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { useMockData } from "@/context/MockDataContext";
-import { useToast } from "@/context/ToastContext";
 import {
   Activity,
   Archive,
   ArrowLeft,
   Plus,
   Save,
-  Trash2,
   TrendingUp,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
-type MeasureInput = {
-  id: number;
-  name: string;
-  period: "WEEKLY" | "MONTHLY";
-  targetValue: number;
-};
+import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
-  const {
-    scoreboard,
-    createScoreboard,
-    updateScoreboard,
-    deleteScoreboard,
-    archiveScoreboard,
-  } = useMockData();
   const router = useRouter();
-  const { showToast } = useToast();
-  const param = useParams<{ mode: string }>();
-  const mode = param?.mode;
-
-  const [goalName, setGoalName] = useState("");
-  const [lagMeasure, setLagMeasure] = useState("");
-  const [measures, setMeasures] = useState<MeasureInput[]>([]);
-  const [activeTooltip, setActiveTooltip] = useState<"lag" | "lead" | null>(
-    null,
-  );
-
-  const isEditMode = !!scoreboard || mode === "update";
-
-  useEffect(() => {
-    if (isEditMode && scoreboard) {
-      setGoalName(scoreboard.goalName);
-      setLagMeasure(scoreboard.lagMeasure);
-      setMeasures(
-        scoreboard.leadMeasures.map((lm) => ({
-          id: Math.random(),
-          name: lm.name,
-          period: lm.period === "DAILY" ? "WEEKLY" : lm.period,
-          targetValue: lm.targetValue,
-        })),
-      );
-    } else {
-      setMeasures([
-        { id: Date.now(), name: "", period: "WEEKLY", targetValue: 3 },
-      ]);
-    }
-  }, [isEditMode, scoreboard]);
-
-  const handleMeasureChange = (
-    id: number,
-    field: keyof MeasureInput,
-    value: string | number | "WEEKLY" | "MONTHLY",
-  ) => {
-    setMeasures((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, [field]: value } : m)),
-    );
-  };
-
-  const addMeasureRow = () => {
-    setMeasures((prev) => [
-      ...prev,
-      { id: Date.now(), name: "", period: "WEEKLY", targetValue: 3 },
-    ]);
-  };
-
-  const removeMeasureRow = (id: number) => {
-    if (measures.length > 1) {
-      setMeasures((prev) => prev.filter((m) => m.id !== id));
-    }
-  };
+  const {
+    activeTooltip,
+    addMeasureRow,
+    archive,
+    goalName,
+    handleMeasureChange,
+    isEditMode,
+    lagMeasure,
+    measures,
+    removeMeasureRow,
+    setActiveTooltip,
+    setGoalName,
+    setLagMeasure,
+    submit,
+  } = useScoreboardSetup();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const validMeasures = measures.filter((m) => m.name.trim() !== "");
-    if (!goalName.trim() || !lagMeasure.trim() || validMeasures.length === 0) {
-      showToast(
-        "error",
-        "가중목, 후행지표, 최소 1개의 선행지표를 입력해주세요.",
-      );
-      return;
-    }
-    if (isEditMode) {
-      updateScoreboard(goalName, lagMeasure, validMeasures);
-    } else {
-      createScoreboard(goalName, lagMeasure, validMeasures);
-    }
-    router.push("/dashboard/my");
+    void submit().then((isSuccess) => {
+      if (isSuccess) {
+        router.push("/dashboard/my");
+      }
+    });
   };
 
   return (
@@ -375,8 +310,7 @@ export default function SetupPage() {
               <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-0.5">
                 관리
               </p>
-              <div className="border border-border rounded-lg overflow-hidden divide-y divide-border">
-                {/* 보관 */}
+              <div className="border border-border rounded-lg overflow-hidden">
                 <div className="px-5 py-4 flex items-center justify-between bg-white">
                   <div>
                     <p className="text-sm font-semibold text-text-primary">
@@ -390,39 +324,17 @@ export default function SetupPage() {
                     type="button"
                     onClick={() => {
                       if (confirm("이 점수판을 보관하시겠습니까?")) {
-                        archiveScoreboard();
-                        router.push("/dashboard");
+                        void archive().then((isSuccess) => {
+                          if (isSuccess) {
+                            router.push("/dashboard/my");
+                          }
+                        });
                       }
                     }}
                     className="flex-shrink-0 px-3 py-1.5 border border-border text-text-secondary hover:border-[rgba(205,207,213,1)] rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ml-4"
                   >
                     <Archive className="w-3.5 h-3.5" />
                     보관
-                  </Button>
-                </div>
-
-                {/* 삭제 */}
-                <div className="px-5 py-4 flex items-center justify-between bg-white">
-                  <div>
-                    <p className="text-sm font-semibold text-danger">
-                      점수판 삭제
-                    </p>
-                    <p className="text-[11px] text-text-muted mt-0.5">
-                      모든 기록을 영구 삭제합니다. 복구할 수 없습니다.
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      if (confirm("정말 영구 삭제하시겠습니까?")) {
-                        deleteScoreboard();
-                        router.push("/dashboard");
-                      }
-                    }}
-                    className="flex-shrink-0 px-3 py-1.5 bg-danger text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ml-4 hover:bg-[rgba(200,20,60,1)]"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    삭제
                   </Button>
                 </div>
               </div>

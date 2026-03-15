@@ -3,7 +3,7 @@ import { z } from "zod";
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 export const dailyLogUpsertSchema = z.object({
-  value: z.boolean(),
+  value: z.literal(true),
 });
 
 export const dailyLogDateParamSchema = z.object({

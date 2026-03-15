@@ -1,5 +1,4 @@
 import {
-  BadRequestError,
   ForbiddenError,
   NotFoundError,
 } from "@/lib/server/errors";
@@ -55,10 +54,6 @@ export class DailyLogService {
 
     if (measure.status === "ARCHIVED") {
       throw new ForbiddenError("LEAD_MEASURE_ARCHIVED");
-    }
-
-    if (date > new Date().toISOString().slice(0, 10)) {
-      throw new BadRequestError("FUTURE_DATE_NOT_ALLOWED");
     }
 
     return await this.dailyLogStorage.upsertLog(leadMeasureId, date, value);

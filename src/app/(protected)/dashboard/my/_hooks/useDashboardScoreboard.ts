@@ -28,15 +28,7 @@ type WeeklyLogsQueryData = getScoreboardsScoreboardIdLogsWeeklyResponse200 | und
 type DailyLogValue = boolean | null;
 
 const getNextLogValue = (value: DailyLogValue): DailyLogValue => {
-  if (value === null) {
-    return true;
-  }
-
-  if (value === true) {
-    return false;
-  }
-
-  return null;
+  return value === true ? null : true;
 };
 
 const updateWeeklyLogsCache = (
@@ -155,7 +147,7 @@ export const useDashboardScoreboard = () => {
       : "";
 
   const toggleLog = async (leadMeasureId: number, date: string) => {
-    if (scoreboardId === null || date > today || pendingLogKey) {
+    if (scoreboardId === null || pendingLogKey) {
       return;
     }
 

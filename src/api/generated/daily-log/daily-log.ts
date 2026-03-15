@@ -48,11 +48,6 @@ export type putLeadMeasuresLeadMeasureIdLogsDateResponse200 = {
   status: 200
 }
 
-export type putLeadMeasuresLeadMeasureIdLogsDateResponse400 = {
-  data: ErrorResponse
-  status: 400
-}
-
 export type putLeadMeasuresLeadMeasureIdLogsDateResponse401 = {
   data: UnauthorizedErrorResponse
   status: 401
@@ -76,7 +71,7 @@ export type putLeadMeasuresLeadMeasureIdLogsDateResponse422 = {
 export type putLeadMeasuresLeadMeasureIdLogsDateResponseSuccess = (putLeadMeasuresLeadMeasureIdLogsDateResponse200) & {
   headers: Headers;
 };
-export type putLeadMeasuresLeadMeasureIdLogsDateResponseError = (putLeadMeasuresLeadMeasureIdLogsDateResponse400 | putLeadMeasuresLeadMeasureIdLogsDateResponse401 | putLeadMeasuresLeadMeasureIdLogsDateResponse403 | putLeadMeasuresLeadMeasureIdLogsDateResponse404 | putLeadMeasuresLeadMeasureIdLogsDateResponse422) & {
+export type putLeadMeasuresLeadMeasureIdLogsDateResponseError = (putLeadMeasuresLeadMeasureIdLogsDateResponse401 | putLeadMeasuresLeadMeasureIdLogsDateResponse403 | putLeadMeasuresLeadMeasureIdLogsDateResponse404 | putLeadMeasuresLeadMeasureIdLogsDateResponse422) & {
   headers: Headers;
 };
 
@@ -108,7 +103,7 @@ export const putLeadMeasuresLeadMeasureIdLogsDate = async (leadMeasureId: number
 
 
 
-export const getPutLeadMeasuresLeadMeasureIdLogsDateMutationOptions = <TError = ErrorResponse | UnauthorizedErrorResponse,
+export const getPutLeadMeasuresLeadMeasureIdLogsDateMutationOptions = <TError = UnauthorizedErrorResponse | ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLeadMeasuresLeadMeasureIdLogsDate>>, TError,{leadMeasureId: number;date: string;data: DailyLogUpsertRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof putLeadMeasuresLeadMeasureIdLogsDate>>, TError,{leadMeasureId: number;date: string;data: DailyLogUpsertRequest}, TContext> => {
 
@@ -137,12 +132,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PutLeadMeasuresLeadMeasureIdLogsDateMutationResult = NonNullable<Awaited<ReturnType<typeof putLeadMeasuresLeadMeasureIdLogsDate>>>
     export type PutLeadMeasuresLeadMeasureIdLogsDateMutationBody = DailyLogUpsertRequest
-    export type PutLeadMeasuresLeadMeasureIdLogsDateMutationError = ErrorResponse | UnauthorizedErrorResponse
+    export type PutLeadMeasuresLeadMeasureIdLogsDateMutationError = UnauthorizedErrorResponse | ErrorResponse
 
     /**
  * @summary 일일 기록 생성 또는 수정
  */
-export const usePutLeadMeasuresLeadMeasureIdLogsDate = <TError = ErrorResponse | UnauthorizedErrorResponse,
+export const usePutLeadMeasuresLeadMeasureIdLogsDate = <TError = UnauthorizedErrorResponse | ErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLeadMeasuresLeadMeasureIdLogsDate>>, TError,{leadMeasureId: number;date: string;data: DailyLogUpsertRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putLeadMeasuresLeadMeasureIdLogsDate>>,

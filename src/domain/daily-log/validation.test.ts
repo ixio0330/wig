@@ -12,6 +12,12 @@ describe("DailyLog Validation", () => {
     expect(result.success).toBe(true);
   });
 
+  it("미선택 상태는 DELETE로만 처리하고 false payload는 거부한다", () => {
+    const result = dailyLogUpsertSchema.safeParse({ value: false });
+
+    expect(result.success).toBe(false);
+  });
+
   it("날짜 파라미터는 YYYY-MM-DD 형식이어야 한다", () => {
     expect(
       dailyLogDateParamSchema.safeParse({

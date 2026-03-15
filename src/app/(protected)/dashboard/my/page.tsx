@@ -7,12 +7,10 @@ import { toNumberId } from "@/lib/client/frontend-api";
 import {
   ArrowLeft,
   Check,
-  Minus,
   Plus,
   Settings,
   Target,
   User as UserIcon,
-  X,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -329,7 +327,6 @@ export default function MyDashboardPage() {
                                 weekly?.logs?.[date] === undefined
                                   ? null
                                   : weekly.logs[date];
-                              const isFuture = date > today;
                               const isToday = date === today;
                               const currentLogKey =
                                 leadMeasureId === null ? null : `${leadMeasureId}:${date}`;
@@ -339,10 +336,7 @@ export default function MyDashboardPage() {
                                 <td key={date} className="py-3 text-center">
                                   <Button
                                     disabled={
-                                      isFuture ||
-                                      isPending ||
-                                      isLogPending ||
-                                      leadMeasureId === null
+                                      isPending || isLogPending || leadMeasureId === null
                                     }
                                     onClick={() => {
                                       if (leadMeasureId !== null) {
@@ -352,22 +346,12 @@ export default function MyDashboardPage() {
                                     className={`w-7 h-7 mx-auto rounded-md flex items-center justify-center border transition-colors ${
                                       currentValue === true
                                         ? "bg-primary border-primary text-white"
-                                        : currentValue === false
-                                          ? "bg-rose-50 border-rose-200 text-rose-500"
-                                          : isFuture
-                                            ? "bg-sub-background border-dashed border-border text-text-muted/30"
-                                            : isToday
-                                              ? "bg-primary/5 border-primary/30 text-primary"
-                                              : "bg-sub-background border-border text-text-muted"
-                                    } ${isFuture || isPending || isLogPending ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+                                        : isToday
+                                          ? "bg-primary/5 border-primary/30 text-primary"
+                                          : "bg-sub-background border-border text-text-muted"
+                                    } ${isPending || isLogPending ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                                   >
-                                    {currentValue === true ? (
-                                      <Check className="w-3.5 h-3.5" />
-                                    ) : currentValue === false ? (
-                                      <X className="w-3.5 h-3.5" />
-                                    ) : (
-                                      <Minus className="w-3.5 h-3.5" />
-                                    )}
+                                    {currentValue === true ? <Check className="w-3.5 h-3.5" /> : null}
                                   </Button>
                                 </td>
                               );
