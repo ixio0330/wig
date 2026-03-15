@@ -333,13 +333,13 @@ export type PutAuthPassword200 = {
 export type PostAdminUsersBody = {
   customId: string;
   nickname: string;
+  password: string;
 };
 
 export type PostAdminUsers201 = {
   id?: number;
   customId?: string;
   nickname?: string;
-  initialPassword?: string;
 };
 
 export type PostWorkspacesBody = {

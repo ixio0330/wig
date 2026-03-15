@@ -152,10 +152,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [customId, nickname]
+              required: [customId, nickname, password]
               properties:
                 customId: { type: string }
                 nickname: { type: string }
+                password: { type: string }
       responses:
         '201':
           description: 사용자 생성 성공
@@ -167,7 +168,6 @@ paths:
                   id: { type: integer }
                   customId: { type: string }
                   nickname: { type: string }
-                  initialPassword: { type: string, example: user }
         '403':
           description: 관리자 권한 없음
           content:
