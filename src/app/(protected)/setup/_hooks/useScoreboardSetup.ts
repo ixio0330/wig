@@ -19,8 +19,8 @@ import { getApiErrorMessage, toNumberId } from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { MeasureInput } from "@/app/setup/_lib/measure";
-import { createEmptyMeasure } from "@/app/setup/_lib/measure";
+import type { MeasureInput } from "@/app/(protected)/setup/_lib/measure";
+import { createEmptyMeasure } from "@/app/(protected)/setup/_lib/measure";
 
 export const useScoreboardSetup = () => {
   const searchParams = useSearchParams();

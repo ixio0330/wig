@@ -8,6 +8,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+type WorkspaceCreateError = {
+  data?: {
+    message?: string;
+  };
+};
+
 export default function NewWorkspacePage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -18,7 +24,7 @@ export default function NewWorkspacePage() {
       onSuccess: () => {
         router.push("/dashboard/my");
       },
-      onError: (err: any) => {
+      onError: (err: WorkspaceCreateError) => {
         setError(
           err.data?.message || "워크스페이스 생성 중 오류가 발생했습니다.",
         );

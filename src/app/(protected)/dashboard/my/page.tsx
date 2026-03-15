@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useDashboardScoreboard } from "@/app/dashboard/my/_hooks/useDashboardScoreboard";
-import { DAY_LABELS } from "@/app/dashboard/my/_lib/week";
+import { useDashboardScoreboard } from "@/app/(protected)/dashboard/my/_hooks/useDashboardScoreboard";
+import { DAY_LABELS } from "@/app/(protected)/dashboard/my/_lib/week";
 
 type StoredUser = {
   nickname?: string;

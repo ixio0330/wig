@@ -22,7 +22,7 @@ import {
 } from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { getWeekDates } from "@/app/dashboard/my/_lib/week";
+import { getWeekDates } from "@/app/(protected)/dashboard/my/_lib/week";
 
 type WeeklyLogsQueryData = getScoreboardsScoreboardIdLogsWeeklyResponse200 | undefined;
 type DailyLogValue = boolean | null;
