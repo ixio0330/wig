@@ -9,6 +9,7 @@ import { toNumberId } from "@/lib/client/frontend-api";
 import {
   ArrowLeft,
   Check,
+  FolderArchive,
   Plus,
   Settings,
   Target,
@@ -171,6 +172,15 @@ export default function MyDashboardPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              asChild
+              className="flex-1 sm:flex-none justify-center px-3 py-2 bg-white border border-border rounded-lg text-xs font-bold text-text-primary hover:border-[rgba(205,207,213,1)] transition-colors flex items-center gap-1.5 min-w-fit"
+            >
+              <Link href="/scoreboards">
+                <FolderArchive className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                <span>점수판 보관함</span>
+              </Link>
+            </Button>
             <Button
               asChild
               className="flex-1 sm:flex-none justify-center px-3 py-2 bg-white border border-border rounded-lg text-xs font-bold text-text-primary hover:border-[rgba(205,207,213,1)] transition-colors flex items-center gap-1.5 min-w-fit"

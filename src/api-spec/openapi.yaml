@@ -417,6 +417,40 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
+  /scoreboards/{id}/reactivate:
+    post:
+      summary: 보관된 점수판 재활성화
+      tags: [Scoreboard]
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: 재활성화 성공
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScoreboardSummary' }
+        '400':
+          description: 이미 활성 상태
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: 점수판 없음
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '409':
+          description: 이미 다른 활성 점수판 존재
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
   /scoreboards/{scoreboardId}/lead-measures:
     get:
       summary: 점수판 선행지표 목록 조회

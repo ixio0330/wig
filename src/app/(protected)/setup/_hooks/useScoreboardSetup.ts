@@ -2,9 +2,12 @@
 
 import {
   getGetScoreboardsActiveQueryKey,
+  getGetScoreboardsQueryKey,
   useGetScoreboardsActive,
+  useGetScoreboards,
   usePostScoreboards,
   usePostScoreboardsIdArchive,
+  usePostScoreboardsIdReactivate,
   usePutScoreboardsId,
 } from "@/api/generated/scoreboard/scoreboard";
 import {
@@ -15,7 +18,11 @@ import {
   usePutLeadMeasuresId,
 } from "@/api/generated/lead-measure/lead-measure";
 import { useToast } from "@/context/ToastContext";
-import { getApiErrorMessage, toNumberId } from "@/lib/client/frontend-api";
+import {
+  getApiErrorMessage,
+  getApiErrorStatus,
+  toNumberId,
+} from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -34,15 +41,32 @@ export const useScoreboardSetup = () => {
   const [activeTooltip, setActiveTooltip] = useState<"lag" | "lead" | null>(
     null,
   );
+  const [recentlyArchivedId, setRecentlyArchivedId] = useState<number | null>(
+    null,
+  );
+  const [pendingReactivationId, setPendingReactivationId] = useState<
+    number | null
+  >(null);
 
-  const { data: activeScoreboardResponse } = useGetScoreboardsActive({
+  const {
+    data: activeScoreboardResponse,
+    error: activeScoreboardError,
+  } = useGetScoreboardsActive({
     query: {
       retry: false,
     },
   });
+  const { data: archivedScoreboardsResponse } = useGetScoreboards();
 
+  const hasNoActiveScoreboard = getApiErrorStatus(activeScoreboardError) === 404;
   const activeScoreboard =
-    activeScoreboardResponse?.status === 200 ? activeScoreboardResponse.data : null;
+    hasNoActiveScoreboard || activeScoreboardResponse?.status !== 200
+      ? null
+      : activeScoreboardResponse.data;
+  const archivedScoreboards =
+    archivedScoreboardsResponse?.status === 200
+      ? archivedScoreboardsResponse.data ?? []
+      : [];
   const scoreboardId = toNumberId(activeScoreboard?.id);
   const isEditMode = scoreboardId !== null && mode !== "create";
 
@@ -62,9 +86,16 @@ export const useScoreboardSetup = () => {
   const createScoreboardMutation = usePostScoreboards();
   const updateScoreboardMutation = usePutScoreboardsId();
   const archiveScoreboardMutation = usePostScoreboardsIdArchive();
+  const reactivateScoreboardMutation = usePostScoreboardsIdReactivate();
   const createLeadMeasureMutation = usePostScoreboardsScoreboardIdLeadMeasures();
   const updateLeadMeasureMutation = usePutLeadMeasuresId();
   const deleteLeadMeasureMutation = useDeleteLeadMeasuresId();
+
+  useEffect(() => {
+    if (activeScoreboard) {
+      setRecentlyArchivedId(null);
+    }
+  }, [activeScoreboard]);
 
   useEffect(() => {
     if (isEditMode && activeScoreboard && leadMeasuresResponse?.status === 200) {
@@ -116,6 +147,9 @@ export const useScoreboardSetup = () => {
   const invalidateScoreboardQueries = async (targetScoreboardId: number | null) => {
     await queryClient.invalidateQueries({
       queryKey: getGetScoreboardsActiveQueryKey(),
+    });
+    await queryClient.invalidateQueries({
+      queryKey: getGetScoreboardsQueryKey(),
     });
 
     if (targetScoreboardId !== null) {
@@ -173,6 +207,8 @@ export const useScoreboardSetup = () => {
         }
 
         await invalidateScoreboardQueries(createdScoreboardId);
+        setRecentlyArchivedId(null);
+        showToast("success", "새 점수판을 만들었습니다.");
         return true;
       }
 
@@ -230,6 +266,7 @@ export const useScoreboardSetup = () => {
         }
 
         await invalidateScoreboardQueries(scoreboardId);
+        showToast("success", "점수판을 저장했습니다.");
       }
 
       return true;
@@ -252,6 +289,11 @@ export const useScoreboardSetup = () => {
         id: scoreboardId,
       });
       await invalidateScoreboardQueries(scoreboardId);
+      setRecentlyArchivedId(scoreboardId);
+      showToast(
+        "success",
+        "점수판을 보관했습니다. 다른 점수판을 활성화하거나 새로 만들 수 있어요.",
+      );
       return true;
     } catch (error) {
       showToast(
@@ -262,15 +304,40 @@ export const useScoreboardSetup = () => {
     }
   };
 
+  const reactivate = async (id: number) => {
+    setPendingReactivationId(id);
+
+    try {
+      await reactivateScoreboardMutation.mutateAsync({ id });
+      await invalidateScoreboardQueries(id);
+      setRecentlyArchivedId(null);
+      showToast("success", "점수판을 다시 활성화했습니다.");
+      return true;
+    } catch (error) {
+      showToast(
+        "error",
+        getApiErrorMessage(error, "점수판 활성화에 실패했습니다."),
+      );
+      return false;
+    } finally {
+      setPendingReactivationId(null);
+    }
+  };
+
   return {
     activeTooltip,
     addMeasureRow,
+    archivedScoreboards,
     archive,
     goalName,
     handleMeasureChange,
+    isArchivePending: archiveScoreboardMutation.isPending,
     isEditMode,
     lagMeasure,
     measures,
+    pendingReactivationId,
+    reactivate,
+    recentlyArchivedId,
     removeMeasureRow,
     setActiveTooltip,
     setGoalName,
