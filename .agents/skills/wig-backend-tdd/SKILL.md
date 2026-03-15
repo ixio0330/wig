@@ -50,6 +50,7 @@ Follow Red -> Green -> Refactor when feasible.
 - default to `validation`, `service`, and `storage` tests for backend behavior
 - prioritize business-rule coverage over incidental coverage
 - add characterization tests before changing existing behavior when practical
+- do not introduce `any` in tests; prefer typed mocks or narrow interfaces
 - add route tests only when HTTP-layer behavior is part of the change
   - request parsing or response branching that is not trivial
   - cookie/header handling
