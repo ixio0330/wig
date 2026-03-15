@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DailyLogService } from "./daily-log.service";
+import { DailyLogService } from "@/domain/daily-log/services/daily-log.service";
 
 describe("DailyLogService", () => {
   const findUserWorkspace = vi.fn();

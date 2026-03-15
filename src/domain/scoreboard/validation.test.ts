@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   scoreboardCreateSchema,
   scoreboardUpdateSchema,
-} from "./validation";
+} from "@/domain/scoreboard/validation";
 
 describe("Scoreboard Validation", () => {
   describe("scoreboardCreateSchema", () => {

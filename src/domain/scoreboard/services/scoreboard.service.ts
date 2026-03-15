@@ -2,13 +2,13 @@ import {
   ConflictError,
   NotFoundError,
   PlatformError,
-} from "../../../lib/errors";
+} from "@/lib/server/errors";
 import {
   CreateScoreboardInput,
   ScoreboardRecord,
   ScoreboardWithLeadMeasures,
   UpdateScoreboardInput,
-} from "../storage/scoreboard.storage";
+} from "@/domain/scoreboard/storage/scoreboard.storage";
 
 type WorkspaceSummary = {
   id: number;

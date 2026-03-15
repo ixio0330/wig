@@ -3,7 +3,7 @@ import {
   ScoreboardService,
   ScoreboardStoragePort,
   WorkspaceLookupPort,
-} from "./scoreboard.service";
+} from "@/domain/scoreboard/services/scoreboard.service";
 
 describe("ScoreboardService", () => {
   const findActiveScoreboard = vi.fn();

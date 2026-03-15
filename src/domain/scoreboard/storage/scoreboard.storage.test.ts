@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { scoreboards } from "../../../db/schema";
-import { ScoreboardDbPort, ScoreboardStorage } from "./scoreboard.storage";
+import { scoreboards } from "@/db/schema";
+import { ScoreboardDbPort, ScoreboardStorage } from "@/domain/scoreboard/storage/scoreboard.storage";
 
 describe("ScoreboardStorage", () => {
   const findFirst = vi.fn();

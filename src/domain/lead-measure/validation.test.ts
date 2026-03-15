@@ -3,7 +3,7 @@ import {
   leadMeasureCreateSchema,
   leadMeasureStatusQuerySchema,
   leadMeasureUpdateSchema,
-} from "./validation";
+} from "@/domain/lead-measure/validation";
 
 describe("LeadMeasure Validation", () => {
   it("유효한 생성 요청은 성공한다", () => {

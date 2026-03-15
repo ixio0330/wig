@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthService } from "./auth.service";
+import { AuthService } from "@/domain/auth/services/auth.service";
 
 describe("Auth Service - login", () => {
   const mockStorage = {

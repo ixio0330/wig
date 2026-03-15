@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LeadMeasureService } from "./lead-measure.service";
+import { LeadMeasureService } from "@/domain/lead-measure/services/lead-measure.service";
 
 describe("LeadMeasureService", () => {
   const findUserWorkspace = vi.fn();

@@ -1,5 +1,5 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
-import { leadMeasures, scoreboards } from "../../../db/schema";
+import { leadMeasures, scoreboards } from "@/db/schema";
+import { and, asc, eq } from "drizzle-orm";
 
 export type LeadMeasureRecord = typeof leadMeasures.$inferSelect;
 export type LeadMeasureWithScoreboard = LeadMeasureRecord & {
@@ -60,7 +60,9 @@ export class LeadMeasureStorage {
     })) as LeadMeasureRecord[];
   }
 
-  async createLeadMeasure(input: CreateLeadMeasureInput): Promise<LeadMeasureRecord> {
+  async createLeadMeasure(
+    input: CreateLeadMeasureInput,
+  ): Promise<LeadMeasureRecord> {
     const [created] = (await this.db
       .insert(leadMeasures)
       .values(input)

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LeadMeasureStorage } from "./lead-measure.storage";
+import { LeadMeasureStorage } from "@/domain/lead-measure/storage/lead-measure.storage";
 
 describe("LeadMeasureStorage", () => {
   const findMany = vi.fn();

@@ -1,12 +1,12 @@
-import { ForbiddenError, NotFoundError } from "../../../lib/errors";
-import { ScoreboardStoragePort, WorkspaceLookupPort } from "../../scoreboard/services/scoreboard.service";
+import { ForbiddenError, NotFoundError } from "@/lib/server/errors";
+import { ScoreboardStoragePort, WorkspaceLookupPort } from "@/domain/scoreboard/services/scoreboard.service";
 import {
   CreateLeadMeasureInput,
   LeadMeasureRecord,
   LeadMeasureStorage,
   LeadMeasureWithScoreboard,
   UpdateLeadMeasureInput,
-} from "../storage/lead-measure.storage";
+} from "@/domain/lead-measure/storage/lead-measure.storage";
 
 type DailyLogSummaryPort = {
   countLogsByLeadMeasure(leadMeasureId: number): Promise<number>;

@@ -1,7 +1,11 @@
-import { BadRequestError, ForbiddenError, NotFoundError } from "../../../lib/errors";
-import { WorkspaceLookupPort } from "../../scoreboard/services/scoreboard.service";
-import { DailyLogRecord, DailyLogStorage } from "../storage/daily-log.storage";
-import { LeadMeasureRecord } from "../../lead-measure/storage/lead-measure.storage";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "@/lib/server/errors";
+import { WorkspaceLookupPort } from "@/domain/scoreboard/services/scoreboard.service";
+import { DailyLogRecord, DailyLogStorage } from "@/domain/daily-log/storage/daily-log.storage";
+import { LeadMeasureRecord } from "@/domain/lead-measure/storage/lead-measure.storage";
 
 type ScoreboardStoragePort = {
   findOwnedScoreboard(

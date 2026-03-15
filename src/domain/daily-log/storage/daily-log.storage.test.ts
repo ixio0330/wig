@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DailyLogStorage } from "./daily-log.storage";
+import { DailyLogStorage } from "@/domain/daily-log/storage/daily-log.storage";
 
 describe("DailyLogStorage", () => {
   const findMany = vi.fn();

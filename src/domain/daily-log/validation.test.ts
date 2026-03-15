@@ -3,7 +3,7 @@ import {
   dailyLogDateParamSchema,
   dailyLogUpsertSchema,
   weeklyLogsQuerySchema,
-} from "./validation";
+} from "@/domain/daily-log/validation";
 
 describe("DailyLog Validation", () => {
   it("유효한 기록 저장 요청은 성공한다", () => {
