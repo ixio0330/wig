@@ -927,6 +927,7 @@ components:
       properties:
         id: { type: integer }
         name: { type: string }
+        period: { type: string, enum: [DAILY, WEEKLY, MONTHLY] }
         targetValue: { type: integer }
         achieved: { type: integer }
         achievementRate: { type: number }
@@ -949,6 +950,8 @@ components:
         achieved: { type: integer }
         total: { type: integer }
         achievementRate: { type: number }
+        weeklyAchievementRate: { type: number }
+        monthlyAchievementRate: { type: number }
         isWinning: { type: boolean }
         leadMeasures:
           type: array

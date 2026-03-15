@@ -191,11 +191,21 @@ export interface MonthlyLogsResponse {
   leadMeasures?: MonthlyLogItem[];
 }
 
+export type TeamDashboardMemberMeasurePeriod = typeof TeamDashboardMemberMeasurePeriod[keyof typeof TeamDashboardMemberMeasurePeriod];
+
+
+export const TeamDashboardMemberMeasurePeriod = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
+
 export type TeamDashboardMemberMeasureLogs = {[key: string]: boolean | null};
 
 export interface TeamDashboardMemberMeasure {
   id?: number;
   name?: string;
+  period?: TeamDashboardMemberMeasurePeriod;
   targetValue?: number;
   achieved?: number;
   achievementRate?: number;
@@ -224,6 +234,8 @@ export interface TeamDashboardMember {
   achieved?: number;
   total?: number;
   achievementRate?: number;
+  weeklyAchievementRate?: number;
+  monthlyAchievementRate?: number;
   isWinning?: boolean;
   leadMeasures?: TeamDashboardMemberMeasure[];
 }

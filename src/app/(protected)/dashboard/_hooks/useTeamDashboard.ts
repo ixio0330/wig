@@ -8,10 +8,12 @@ const getWeekDatesFromStart = (weekStart?: string) => {
     return [];
   }
 
-  const base = new Date(weekStart);
+  const [year, month, day] = weekStart.split("-").map(Number);
+  const base = new Date(Date.UTC(year, month - 1, day));
+
   return Array.from({ length: 7 }, (_, index) => {
     const date = new Date(base);
-    date.setDate(base.getDate() + index);
+    date.setUTCDate(base.getUTCDate() + index);
     return date.toISOString().slice(0, 10);
   });
 };
