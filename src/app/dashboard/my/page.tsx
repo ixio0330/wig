@@ -1,85 +1,84 @@
 "use client";
 
-import { useGetWorkspacesMe } from "@/api/generated/workspace/workspace";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { useMockData } from "@/context/MockDataContext";
+import { toNumberId } from "@/lib/client/frontend-api";
 import {
   ArrowLeft,
   Check,
+  Minus,
   Plus,
   Settings,
   Target,
   User as UserIcon,
+  X,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useDashboardScoreboard } from "@/app/dashboard/my/_hooks/useDashboardScoreboard";
+import { DAY_LABELS } from "@/app/dashboard/my/_lib/week";
 
-const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
+type StoredUser = {
+  nickname?: string;
+};
 
-const getWeekDates = (): string[] => {
-  const dates: string[] = [];
-  const today = new Date();
-  const day = today.getDay();
-  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(today);
-  monday.setDate(diff);
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    dates.push(d.toISOString().split("T")[0]);
+const getStoredNickname = (): string | null => {
+  if (typeof window === "undefined") {
+    return null;
   }
-  return dates;
+
+  const raw = window.localStorage.getItem("wig_user");
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const user = JSON.parse(raw) as StoredUser;
+    return user.nickname ?? null;
+  } catch {
+    return null;
+  }
 };
 
 export default function MyDashboardPage() {
-  const { user, scoreboard, updateLog } = useMockData();
-  const router = useRouter();
-  const [weekDates, setWeekDates] = useState<string[]>([]);
-
-  // 워크스페이스 정보 조회 (API)
   const {
-    data: workspaceResponse,
-    isLoading: isWorkspaceLoading,
-    error: workspaceError,
-  } = useGetWorkspacesMe({
-    query: {
-      retry: (failureCount, error) =>
-        (error as { response?: { status?: number } })?.response?.status !==
-          404 && failureCount < 3,
-    },
-  });
+    activeLeadMeasures,
+    activeScoreboard,
+    hasNoScoreboard,
+    hasNoWorkspace,
+    isLoading,
+    isLogPending,
+    isWeeklyLogsLoading,
+    overallRate,
+    pendingLogKey,
+    today,
+    toggleLog,
+    weekDates,
+    weekLabel,
+    weeklyById,
+    workspace,
+  } = useDashboardScoreboard();
+  const [nickname, setNickname] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) router.push("/");
-    setWeekDates(getWeekDates());
-  }, [user, router]);
+    setNickname(getStoredNickname());
+  }, []);
 
-  // 404는 재시도 없이 즉시 빈 상태 UI를 노출한다.
-  const is404 =
-    (workspaceError as { response?: { status?: number } })?.response?.status ===
-      404 || workspaceResponse?.status === 404;
-
-  // 404가 확실하면 로딩 중이라도 안내 UI를 바로 보여줌, 그 외 로딩은 스피너
-  if (isWorkspaceLoading && !is404) return <LoadingSpinner />;
-  if (!user) return null;
-
-  const hasNoWorkspace = is404 || !workspaceResponse;
-  const workspace = workspaceResponse?.status === 200 ? workspaceResponse.data : null;
+  if (isLoading || (activeScoreboard && isWeeklyLogsLoading && weeklyById.size === 0)) {
+    return <LoadingSpinner />;
+  }
 
   if (hasNoWorkspace) {
     return (
       <div className="min-h-screen bg-background font-pretendard flex items-center justify-center p-8">
         <div className="max-w-[400px] w-full space-y-8 animate-linear-in">
-          {/* 아이콘 */}
           <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
             <Zap className="text-primary w-7 h-7" />
           </div>
 
-          {/* 텍스트 */}
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-text-primary tracking-tight">
               소속된 워크스페이스가 없어요
@@ -91,7 +90,6 @@ export default function MyDashboardPage() {
             </p>
           </div>
 
-          {/* CTA */}
           <Button
             asChild
             className="btn-linear-primary flex items-center gap-2 w-fit px-5 py-3 text-sm"
@@ -105,23 +103,14 @@ export default function MyDashboardPage() {
     );
   }
 
-  const today = new Date().toISOString().split("T")[0];
-  const weekLabel =
-    weekDates.length === 7
-      ? `${weekDates[0].slice(5).replace("-", ".")} – ${weekDates[6].slice(5).replace("-", ".")}`
-      : "";
-
-  // ── 점수판 없음 ─────────────────────────────────────────────
-  if (!scoreboard) {
+  if (hasNoScoreboard || !activeScoreboard) {
     return (
       <div className="min-h-screen bg-background font-pretendard flex items-center justify-center p-8">
         <div className="max-w-[400px] w-full space-y-8 animate-linear-in">
-          {/* 아이콘 */}
           <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
             <Zap className="text-primary w-7 h-7" />
           </div>
 
-          {/* 텍스트 */}
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-text-primary tracking-tight">
               아직 목표가 없어요
@@ -133,7 +122,6 @@ export default function MyDashboardPage() {
             </p>
           </div>
 
-          {/* CTA */}
           <Button
             asChild
             className="btn-linear-primary flex items-center gap-2 w-fit px-5 py-3 text-sm"
@@ -147,43 +135,11 @@ export default function MyDashboardPage() {
     );
   }
 
-  const activeLeadMeasures = scoreboard.leadMeasures.filter(
-    (lm) => lm.status === "ACTIVE",
-  );
-
-  // 이번 주 달성률 계산 (각 지표별 달성률의 평균)
-  const totalRate = activeLeadMeasures.reduce((acc, lm) => {
-    // 이번 주(월~일) 동안 달성한 횟수
-    const weeklyAchievedCount = weekDates.filter(
-      (date) => date <= today && lm.logs.find((l) => l.logDate === date)?.value,
-    ).length;
-
-    // 지표별 이번 주 목표치 계산
-    // DAILY: 입력받은 targetValue 자체가 "주간 목표 횟수"로 쓰임 (예: 주 7회)
-    // WEEKLY: 입력받은 targetValue가 "주간 목표 횟수" (예: 주 3회)
-    // MONTHLY: 이번 주는 1회만 해도 100% 달성으로 간주 (또는 주간 목표치 산출)
-    let weeklyTarget = lm.targetValue;
-    if (lm.period === "MONTHLY") {
-      weeklyTarget = Math.max(1, Math.round(lm.targetValue / 4));
-    }
-
-    // 개별 지표의 달성률 (최대 100% 초과 방지)
-    const lmRate = Math.min((weeklyAchievedCount / weeklyTarget) * 100, 100);
-    return acc + lmRate;
-  }, 0);
-
-  const overallRate =
-    activeLeadMeasures.length > 0
-      ? Math.round(totalRate / activeLeadMeasures.length)
-      : 0;
-
   return (
     <div className="min-h-screen bg-background font-pretendard">
       <div className="max-w-[860px] mx-auto p-4 md:p-8 space-y-8 animate-linear-in">
-        {/* ── 헤더 ── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {/* 팀 대시보드로 뒤로가기 */}
             <Button
               asChild
               className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors shrink-0"
@@ -197,7 +153,7 @@ export default function MyDashboardPage() {
                 {workspace?.name}
               </p>
               <h1 className="text-sm font-bold text-text-primary truncate">
-                {user.nickname}님의 점수판
+                {nickname ? `${nickname}님의 점수판` : "나의 점수판"}
               </h1>
             </div>
           </div>
@@ -224,9 +180,7 @@ export default function MyDashboardPage() {
           </div>
         </header>
 
-        {/* ── WIG 카드 ── */}
         <Card className="border border-border rounded-lg overflow-hidden">
-          {/* 상단: 가중목 */}
           <div className="px-6 py-4 flex items-start gap-4 border-b border-border">
             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
               <Zap className="w-4 h-4 text-primary" />
@@ -236,11 +190,10 @@ export default function MyDashboardPage() {
                 가중목
               </p>
               <h2 className="text-lg font-bold text-text-primary tracking-tight">
-                {scoreboard.goalName}
+                {activeScoreboard.goalName}
               </h2>
             </div>
 
-            {/* 주간 달성률 */}
             <div className="flex-shrink-0 text-right space-y-1">
               <p className="text-[10px] text-text-muted">이번 주 달성률</p>
               <p
@@ -257,7 +210,6 @@ export default function MyDashboardPage() {
             </div>
           </div>
 
-          {/* 하단: 후행지표 */}
           <div className="px-6 py-3 bg-sub-background flex items-center gap-3">
             <Target className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
             <div>
@@ -265,13 +217,12 @@ export default function MyDashboardPage() {
                 후행지표
               </span>
               <span className="text-sm text-text-primary font-medium">
-                {scoreboard.lagMeasure}
+                {activeScoreboard.lagMeasure}
               </span>
             </div>
           </div>
         </Card>
 
-        {/* ── 주간 점수판 ── */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-0.5">
             <h2 className="text-sm font-bold text-text-primary">
@@ -301,13 +252,12 @@ export default function MyDashboardPage() {
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
-                  {/* 테이블 헤더 */}
                   <div className="bg-sub-background border-b border-border">
                     <table className="w-full table-fixed text-xs">
                       <colgroup>
                         <col className="w-[38%]" />
-                        {DAY_LABELS.map((_, i) => (
-                          <col key={i} className="w-[8%]" />
+                        {DAY_LABELS.map((day) => (
+                          <col key={day} className="w-[8%]" />
                         ))}
                         <col className="w-[14%]" />
                       </colgroup>
@@ -316,11 +266,11 @@ export default function MyDashboardPage() {
                           <th className="py-3 px-5 text-left text-[11px] font-bold text-text-muted uppercase tracking-widest">
                             선행지표
                           </th>
-                          {DAY_LABELS.map((day, i) => (
+                          {DAY_LABELS.map((day, index) => (
                             <th
-                              key={i}
+                              key={day}
                               className={`py-3 text-center text-[11px] font-bold uppercase tracking-widest ${
-                                weekDates[i] === today
+                                weekDates[index] === today
                                   ? "text-primary"
                                   : "text-text-muted"
                               }`}
@@ -336,85 +286,93 @@ export default function MyDashboardPage() {
                     </table>
                   </div>
 
-                  {/* 테이블 바디 */}
                   <table className="w-full table-fixed text-xs">
                     <colgroup>
                       <col className="w-[38%]" />
-                      {DAY_LABELS.map((_, i) => (
-                        <col key={i} className="w-[8%]" />
+                      {DAY_LABELS.map((day) => (
+                        <col key={day} className="w-[8%]" />
                       ))}
                       <col className="w-[14%]" />
                     </colgroup>
                     <tbody className="divide-y divide-border">
-                      {activeLeadMeasures.map((lm) => {
-                        const achievedCount = weekDates.filter(
-                          (date) =>
-                            lm.logs.find((l) => l.logDate === date)?.value,
-                        ).length;
-                        const rate = Math.round(
-                          (achievedCount / lm.targetValue) * 100,
-                        );
+                      {activeLeadMeasures.map((leadMeasure) => {
+                        const leadMeasureId = toNumberId(leadMeasure.id);
+                        const weekly = weeklyById.get(leadMeasureId);
+                        const achievedCount = weekly?.achieved ?? 0;
+                        const targetValue = leadMeasure.targetValue ?? 0;
+                        const rate =
+                          targetValue > 0
+                            ? Math.round((achievedCount / targetValue) * 100)
+                            : 0;
 
                         return (
-                          <tr key={lm.id} className="bg-white">
-                            {/* 지표명 */}
+                          <tr key={leadMeasure.id} className="bg-white">
                             <td className="py-4 px-5">
                               <Link
-                                href={`/measure/${lm.id}`}
+                                href={`/measure/${leadMeasure.id}`}
                                 className="block font-semibold text-text-primary hover:text-primary transition-colors truncate text-sm"
                               >
-                                {lm.name}
+                                {leadMeasure.name}
                               </Link>
                               <span className="text-[10px] text-text-muted">
-                                목표 {lm.targetValue}회 /{" "}
-                                {lm.period === "DAILY"
+                                목표 {targetValue}회 /{" "}
+                                {leadMeasure.period === "DAILY"
                                   ? "일"
-                                  : lm.period === "WEEKLY"
+                                  : leadMeasure.period === "WEEKLY"
                                     ? "주"
                                     : "월"}
                               </span>
                             </td>
 
-                            {/* 요일별 O/X 토글 */}
-                            {weekDates.map((date, i) => {
-                              const isAchieved = lm.logs.find(
-                                (l) => l.logDate === date,
-                              )?.value;
+                            {weekDates.map((date) => {
+                              const currentValue =
+                                weekly?.logs?.[date] === undefined
+                                  ? null
+                                  : weekly.logs[date];
                               const isFuture = date > today;
                               const isToday = date === today;
+                              const currentLogKey =
+                                leadMeasureId === null ? null : `${leadMeasureId}:${date}`;
+                              const isPending = pendingLogKey === currentLogKey;
 
                               return (
                                 <td key={date} className="py-3 text-center">
                                   <Button
-                                    onClick={() =>
-                                      updateLog(lm.id, date, !isAchieved)
+                                    disabled={
+                                      isFuture ||
+                                      isPending ||
+                                      isLogPending ||
+                                      leadMeasureId === null
                                     }
-                                    className={`
-                                  w-7 h-7 mx-auto rounded-md flex items-center justify-center transition-colors cursor-pointer
-                                  ${
-                                    isAchieved
-                                      ? "bg-primary text-white"
-                                      : isToday
-                                        ? "bg-primary/5 border border-primary/30 text-text-muted"
-                                        : date > today
-                                          ? "bg-sub-background border border-dashed border-border text-text-muted/30"
-                                          : "bg-sub-background border border-border text-text-muted/40"
-                                  }
-                                `}
+                                    onClick={() => {
+                                      if (leadMeasureId !== null) {
+                                        void toggleLog(leadMeasureId, date);
+                                      }
+                                    }}
+                                    className={`w-7 h-7 mx-auto rounded-md flex items-center justify-center border transition-colors ${
+                                      currentValue === true
+                                        ? "bg-primary border-primary text-white"
+                                        : currentValue === false
+                                          ? "bg-rose-50 border-rose-200 text-rose-500"
+                                          : isFuture
+                                            ? "bg-sub-background border-dashed border-border text-text-muted/30"
+                                            : isToday
+                                              ? "bg-primary/5 border-primary/30 text-primary"
+                                              : "bg-sub-background border-border text-text-muted"
+                                    } ${isFuture || isPending || isLogPending ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                                   >
-                                    {isAchieved ? (
+                                    {currentValue === true ? (
                                       <Check className="w-3.5 h-3.5" />
+                                    ) : currentValue === false ? (
+                                      <X className="w-3.5 h-3.5" />
                                     ) : (
-                                      <span className="text-[9px] font-bold">
-                                        {date > today ? "" : "✕"}
-                                      </span>
+                                      <Minus className="w-3.5 h-3.5" />
                                     )}
                                   </Button>
                                 </td>
                               );
                             })}
 
-                            {/* 달성률 */}
                             <td className="py-4 px-3 text-center">
                               <div className="flex flex-col items-center gap-1.5">
                                 <div className="w-10 h-1 bg-sub-background rounded-full overflow-hidden border border-border">
@@ -434,7 +392,7 @@ export default function MyDashboardPage() {
                                       : "text-text-secondary"
                                   }`}
                                 >
-                                  {achievedCount}/{lm.targetValue}
+                                  {achievedCount}/{targetValue}
                                 </span>
                               </div>
                             </td>
