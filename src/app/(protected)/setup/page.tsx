@@ -77,7 +77,7 @@ export default function SetupPage() {
             <div className="px-5 py-3 bg-sub-background border-b border-border flex items-center gap-2">
               <Zap className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-bold text-text-primary">
-                가중목 (WIG)
+                가중목
               </span>
             </div>
             <div className="p-5 space-y-3">

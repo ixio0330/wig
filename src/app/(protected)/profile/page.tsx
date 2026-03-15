@@ -1,11 +1,15 @@
 "use client";
 
+import { getGetDashboardTeamQueryKey } from "@/api/generated/dashboard/dashboard";
+import { getGetUsersMeQueryKey, usePutUsersMe } from "@/api/generated/profile/profile";
 import PushSubscriptionManager from "@/components/PushSubscriptionManager";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useMockData } from "@/context/MockDataContext";
 import { useToast } from "@/context/ToastContext";
+import { getApiErrorMessage } from "@/lib/client/frontend-api";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Bell,
@@ -29,8 +33,10 @@ interface MenuItem {
 }
 
 export default function ProfilePage() {
+  const queryClient = useQueryClient();
   const { user, updateProfile, logout, changePassword } = useMockData();
   const { showToast } = useToast();
+  const updateNicknameMutation = usePutUsersMe();
 
   if (!user) return null;
 
@@ -44,9 +50,40 @@ export default function ProfilePage() {
           title: "닉네임 변경",
           description: "대시보드에 표시될 이름을 변경합니다.",
           danger: false,
-          onClick: () => {
+          onClick: async () => {
             const next = prompt("새로운 닉네임을 입력하세요:", user.nickname);
-            if (next) updateProfile(next);
+
+            if (!next) {
+              return;
+            }
+
+            try {
+              const response = await updateNicknameMutation.mutateAsync({
+                data: {
+                  nickname: next,
+                },
+              });
+
+              if (response.status !== 200) {
+                throw response;
+              }
+
+              updateProfile(response.data.nickname);
+              await Promise.all([
+                queryClient.invalidateQueries({
+                  queryKey: getGetUsersMeQueryKey(),
+                }),
+                queryClient.invalidateQueries({
+                  queryKey: getGetDashboardTeamQueryKey(undefined),
+                }),
+              ]);
+              showToast("success", "닉네임이 변경되었습니다.");
+            } catch (error) {
+              showToast(
+                "error",
+                getApiErrorMessage(error, "닉네임 변경에 실패했습니다."),
+              );
+            }
           },
         },
         {

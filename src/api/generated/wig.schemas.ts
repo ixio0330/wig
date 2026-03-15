@@ -11,6 +11,38 @@ export interface User {
   isFirstLogin?: boolean;
 }
 
+/**
+ * @nullable
+ */
+export type UserProfileRole = typeof UserProfileRole[keyof typeof UserProfileRole] | null;
+
+
+export const UserProfileRole = {
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER',
+} as const;
+
+export interface UserProfile {
+  id?: number;
+  customId?: string;
+  nickname?: string;
+  /** @nullable */
+  role?: UserProfileRole;
+  /** @nullable */
+  workspaceId?: number | null;
+  /** @nullable */
+  workspaceName?: string | null;
+  createdAt?: string;
+}
+
+export interface UserProfileUpdateRequest {
+  /**
+   * @minLength 2
+   * @maxLength 20
+   */
+  nickname: string;
+}
+
 export interface Workspace {
   id?: number;
   name?: string;

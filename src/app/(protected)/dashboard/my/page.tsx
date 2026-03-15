@@ -1,5 +1,7 @@
 "use client";
 
+import { useDashboardScoreboard } from "@/app/(protected)/dashboard/my/_hooks/useDashboardScoreboard";
+import { DAY_LABELS } from "@/app/(protected)/dashboard/my/_lib/week";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -15,8 +17,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useDashboardScoreboard } from "@/app/(protected)/dashboard/my/_hooks/useDashboardScoreboard";
-import { DAY_LABELS } from "@/app/(protected)/dashboard/my/_lib/week";
 
 type StoredUser = {
   nickname?: string;
@@ -65,7 +65,10 @@ export default function MyDashboardPage() {
     setNickname(getStoredNickname());
   }, []);
 
-  if (isLoading || (activeScoreboard && isWeeklyLogsLoading && weeklyById.size === 0)) {
+  if (
+    isLoading ||
+    (activeScoreboard && isWeeklyLogsLoading && weeklyById.size === 0)
+  ) {
     return <LoadingSpinner />;
   }
 
@@ -179,20 +182,22 @@ export default function MyDashboardPage() {
         </header>
 
         <Card className="border border-border rounded-lg overflow-hidden">
-          <div className="px-6 py-4 flex items-start gap-4 border-b border-border">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Zap className="w-4 h-4 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">
-                가중목
-              </p>
-              <h2 className="text-lg font-bold text-text-primary tracking-tight">
-                {activeScoreboard.goalName}
-              </h2>
+          <div className="px-6 py-4 flex justify-between items-center gap-4 border-b border-border">
+            <div className="flex flex-row items-center gap-4">
+              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Zap className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+                  가중목
+                </p>
+                <h2 className="text-lg font-bold text-text-primary">
+                  {activeScoreboard.goalName}
+                </h2>
+              </div>
             </div>
 
-            <div className="flex-shrink-0 text-right space-y-1">
+            <div className="text-right space-y-1">
               <p className="text-[10px] text-text-muted">이번 주 달성률</p>
               <p
                 className={`text-2xl font-bold font-mono tracking-tight ${
@@ -209,9 +214,9 @@ export default function MyDashboardPage() {
           </div>
 
           <div className="px-6 py-3 bg-sub-background flex items-center gap-3">
-            <Target className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
-            <div>
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mr-3">
+            <Target className="w-3.5 h-3.5 text-text-muted" />
+            <div className="flex flex-row items-center">
+              <span className="text-[10px] font-bold text-text-muted tracking-widest mr-3">
                 후행지표
               </span>
               <span className="text-sm text-text-primary font-medium">
@@ -329,14 +334,18 @@ export default function MyDashboardPage() {
                                   : weekly.logs[date];
                               const isToday = date === today;
                               const currentLogKey =
-                                leadMeasureId === null ? null : `${leadMeasureId}:${date}`;
+                                leadMeasureId === null
+                                  ? null
+                                  : `${leadMeasureId}:${date}`;
                               const isPending = pendingLogKey === currentLogKey;
 
                               return (
                                 <td key={date} className="py-3 text-center">
                                   <Button
                                     disabled={
-                                      isPending || isLogPending || leadMeasureId === null
+                                      isPending ||
+                                      isLogPending ||
+                                      leadMeasureId === null
                                     }
                                     onClick={() => {
                                       if (leadMeasureId !== null) {
@@ -351,7 +360,9 @@ export default function MyDashboardPage() {
                                           : "bg-sub-background border-border text-text-muted"
                                     } ${isPending || isLogPending ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                                   >
-                                    {currentValue === true ? <Check className="w-3.5 h-3.5" /> : null}
+                                    {currentValue === true ? (
+                                      <Check className="w-3.5 h-3.5" />
+                                    ) : null}
                                   </Button>
                                 </td>
                               );

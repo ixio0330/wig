@@ -95,6 +95,52 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
+  /users/me:
+    get:
+      summary: 내 프로필 조회
+      tags: [Profile]
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '404':
+          description: 사용자를 찾을 수 없음
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      summary: 내 닉네임 변경
+      tags: [Profile]
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserProfileUpdateRequest' }
+      responses:
+        '200':
+          description: 변경 성공
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '422':
+          description: 닉네임 유효성 오류
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: 사용자를 찾을 수 없음
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
   /admin/users:
     post:
       summary: "[ADMIN] 새 멤버 추가"
@@ -687,6 +733,33 @@ components:
         id: { type: integer }
         nickname: { type: string }
         isFirstLogin: { type: boolean }
+
+    UserProfile:
+      type: object
+      properties:
+        id: { type: integer }
+        customId: { type: string }
+        nickname: { type: string }
+        role:
+          type: string
+          enum: [ADMIN, MEMBER]
+          nullable: true
+        workspaceId:
+          type: integer
+          nullable: true
+        workspaceName:
+          type: string
+          nullable: true
+        createdAt: { type: string, format: date-time }
+
+    UserProfileUpdateRequest:
+      type: object
+      required: [nickname]
+      properties:
+        nickname:
+          type: string
+          minLength: 2
+          maxLength: 20
 
     Workspace:
       type: object
