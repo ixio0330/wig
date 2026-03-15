@@ -28,7 +28,9 @@ import type {
   DailyLog,
   DailyLogUpsertRequest,
   ErrorResponse,
+  GetScoreboardsScoreboardIdLogsMonthlyParams,
   GetScoreboardsScoreboardIdLogsWeeklyParams,
+  MonthlyLogsResponse,
   UnauthorizedErrorResponse,
   WeeklyLogsResponse
 } from '../wig.schemas';
@@ -370,6 +372,143 @@ export function useGetScoreboardsScoreboardIdLogsWeekly<TData = Awaited<ReturnTy
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetScoreboardsScoreboardIdLogsWeeklyQueryOptions(scoreboardId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary 월간 기록 조회
+ */
+export type getScoreboardsScoreboardIdLogsMonthlyResponse200 = {
+  data: MonthlyLogsResponse
+  status: 200
+}
+
+export type getScoreboardsScoreboardIdLogsMonthlyResponse401 = {
+  data: UnauthorizedErrorResponse
+  status: 401
+}
+
+export type getScoreboardsScoreboardIdLogsMonthlyResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getScoreboardsScoreboardIdLogsMonthlyResponseSuccess = (getScoreboardsScoreboardIdLogsMonthlyResponse200) & {
+  headers: Headers;
+};
+export type getScoreboardsScoreboardIdLogsMonthlyResponseError = (getScoreboardsScoreboardIdLogsMonthlyResponse401 | getScoreboardsScoreboardIdLogsMonthlyResponse404) & {
+  headers: Headers;
+};
+
+export type getScoreboardsScoreboardIdLogsMonthlyResponse = (getScoreboardsScoreboardIdLogsMonthlyResponseSuccess | getScoreboardsScoreboardIdLogsMonthlyResponseError)
+
+export const getGetScoreboardsScoreboardIdLogsMonthlyUrl = (scoreboardId: number,
+    params?: GetScoreboardsScoreboardIdLogsMonthlyParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/scoreboards/${scoreboardId}/logs/monthly?${stringifiedParams}` : `/api/scoreboards/${scoreboardId}/logs/monthly`
+}
+
+export const getScoreboardsScoreboardIdLogsMonthly = async (scoreboardId: number,
+    params?: GetScoreboardsScoreboardIdLogsMonthlyParams, options?: RequestInit): Promise<getScoreboardsScoreboardIdLogsMonthlyResponse> => {
+  
+  return customInstance<getScoreboardsScoreboardIdLogsMonthlyResponse>(getGetScoreboardsScoreboardIdLogsMonthlyUrl(scoreboardId,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetScoreboardsScoreboardIdLogsMonthlyQueryKey = (scoreboardId: number,
+    params?: GetScoreboardsScoreboardIdLogsMonthlyParams,) => {
+    return [
+    `/api/scoreboards/${scoreboardId}/logs/monthly`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getGetScoreboardsScoreboardIdLogsMonthlyQueryOptions = <TData = Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError = UnauthorizedErrorResponse | ErrorResponse>(scoreboardId: number,
+    params?: GetScoreboardsScoreboardIdLogsMonthlyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScoreboardsScoreboardIdLogsMonthlyQueryKey(scoreboardId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>> = ({ signal }) => getScoreboardsScoreboardIdLogsMonthly(scoreboardId,params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(scoreboardId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetScoreboardsScoreboardIdLogsMonthlyQueryResult = NonNullable<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>>
+export type GetScoreboardsScoreboardIdLogsMonthlyQueryError = UnauthorizedErrorResponse | ErrorResponse
+
+
+export function useGetScoreboardsScoreboardIdLogsMonthly<TData = Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
+ scoreboardId: number,
+    params: undefined |  GetScoreboardsScoreboardIdLogsMonthlyParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>,
+          TError,
+          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetScoreboardsScoreboardIdLogsMonthly<TData = Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
+ scoreboardId: number,
+    params?: GetScoreboardsScoreboardIdLogsMonthlyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>,
+          TError,
+          Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetScoreboardsScoreboardIdLogsMonthly<TData = Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
+ scoreboardId: number,
+    params?: GetScoreboardsScoreboardIdLogsMonthlyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 월간 기록 조회
+ */
+
+export function useGetScoreboardsScoreboardIdLogsMonthly<TData = Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError = UnauthorizedErrorResponse | ErrorResponse>(
+ scoreboardId: number,
+    params?: GetScoreboardsScoreboardIdLogsMonthlyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScoreboardsScoreboardIdLogsMonthly>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetScoreboardsScoreboardIdLogsMonthlyQueryOptions(scoreboardId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

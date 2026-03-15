@@ -165,6 +165,32 @@ export interface WeeklyLogsResponse {
   leadMeasures?: WeeklyLogItem[];
 }
 
+export type MonthlyLogItemLogs = {[key: string]: boolean | null};
+
+export interface MonthlyLogItem {
+  id?: number;
+  name?: string;
+  targetValue?: number;
+  logs?: MonthlyLogItemLogs;
+  achieved?: number;
+  achievementRate?: number;
+}
+
+export interface PeriodSummary {
+  achieved?: number;
+  total?: number;
+  achievementRate?: number;
+  isWinning?: boolean;
+}
+
+export interface MonthlyLogsResponse {
+  monthStart?: string;
+  monthEnd?: string;
+  monthLabel?: string;
+  summary?: PeriodSummary;
+  leadMeasures?: MonthlyLogItem[];
+}
+
 export type TeamDashboardMemberMeasureLogs = {[key: string]: boolean | null};
 
 export interface TeamDashboardMemberMeasure {
@@ -343,6 +369,10 @@ export type DeleteLeadMeasuresId200 = {
 
 export type GetScoreboardsScoreboardIdLogsWeeklyParams = {
 weekStart?: string;
+};
+
+export type GetScoreboardsScoreboardIdLogsMonthlyParams = {
+monthStart?: string;
 };
 
 export type GetDashboardTeamParams = {

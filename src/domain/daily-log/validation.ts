@@ -18,6 +18,13 @@ export const weeklyLogsQuerySchema = z.object({
     .optional(),
 });
 
+export const monthlyLogsQuerySchema = z.object({
+  monthStart: z
+    .string()
+    .regex(datePattern, "날짜 형식이 올바르지 않습니다.")
+    .optional(),
+});
+
 export const scoreboardLogsParamSchema = z.object({
   scoreboardId: z.coerce.number().int().positive(),
 });

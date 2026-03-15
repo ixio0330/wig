@@ -49,13 +49,16 @@ export default function MyDashboardPage() {
     hasNoWorkspace,
     isLoading,
     isLogPending,
+    isMonthlyLogsLoading,
     isWeeklyLogsLoading,
-    overallRate,
+    monthlyOverallRate,
+    monthLabel,
     pendingLogKey,
     today,
     toggleLog,
     weekDates,
     weekLabel,
+    weeklyOverallRate,
     weeklyById,
     workspace,
   } = useDashboardScoreboard();
@@ -73,7 +76,9 @@ export default function MyDashboardPage() {
 
   if (
     isLoading ||
-    (activeScoreboard && isWeeklyLogsLoading && weeklyById.size === 0)
+    (activeScoreboard &&
+      (isWeeklyLogsLoading || isMonthlyLogsLoading) &&
+      weeklyById.size === 0)
   ) {
     return <LoadingSpinner />;
   }
@@ -207,18 +212,29 @@ export default function MyDashboardPage() {
               <p className="text-[10px] text-text-muted">이번 주 달성률</p>
               <p
                 className={`text-2xl font-bold font-mono tracking-tight ${
-                  overallRate >= 80
+                  weeklyOverallRate >= 80
                     ? "text-green-600"
-                    : overallRate >= 50
+                    : weeklyOverallRate >= 50
                       ? "text-amber-600"
                       : "text-text-primary"
                 }`}
               >
-                {overallRate}%
+                {weeklyOverallRate}%
               </p>
-              <p className="text-[10px] text-text-muted">
-                이번 달 달성률: 월간 목표 집계 준비중
-              </p>
+              <div className="flex items-center justify-end gap-1 text-[10px] text-text-muted">
+                <span>이번 달 달성률{monthLabel ? ` (${monthLabel})` : ""}</span>
+                <strong
+                  className={`font-mono ${
+                    monthlyOverallRate >= 80
+                      ? "text-green-600"
+                      : monthlyOverallRate >= 50
+                        ? "text-amber-600"
+                        : "text-text-primary"
+                  }`}
+                >
+                  {monthlyOverallRate}%
+                </strong>
+              </div>
             </div>
           </div>
 
@@ -243,7 +259,7 @@ export default function MyDashboardPage() {
               </h2>
               <p className="text-[11px] text-text-muted">
                 주간 목표({weeklyGoalCount}개)는 이번 주 기준으로 집계하고, 월간
-                목표({monthlyGoalCount}개)는 이번 달 누적으로 집계할 예정입니다.
+                목표({monthlyGoalCount}개)는 이번 달 누적으로 집계합니다.
               </p>
             </div>
             <div className="flex items-center gap-2">

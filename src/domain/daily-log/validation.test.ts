@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   dailyLogDateParamSchema,
   dailyLogUpsertSchema,
+  monthlyLogsQuerySchema,
   weeklyLogsQuerySchema,
 } from "@/domain/daily-log/validation";
 
@@ -40,6 +41,15 @@ describe("DailyLog Validation", () => {
     ).toBe(true);
     expect(
       weeklyLogsQuerySchema.safeParse({ weekStart: "03-09-2026" }).success,
+    ).toBe(false);
+  });
+
+  it("월간 조회 쿼리의 monthStart 형식이 잘못되면 실패한다", () => {
+    expect(
+      monthlyLogsQuerySchema.safeParse({ monthStart: "2026-03-01" }).success,
+    ).toBe(true);
+    expect(
+      monthlyLogsQuerySchema.safeParse({ monthStart: "03-01-2026" }).success,
     ).toBe(false);
   });
 });

@@ -2,10 +2,12 @@
 
 import {
   deleteLeadMeasuresLeadMeasureIdLogsDateResponse,
+  getGetScoreboardsScoreboardIdLogsMonthlyQueryKey,
   getGetScoreboardsScoreboardIdLogsWeeklyQueryKey,
   getScoreboardsScoreboardIdLogsWeeklyResponse200,
   putLeadMeasuresLeadMeasureIdLogsDateResponse,
   useDeleteLeadMeasuresLeadMeasureIdLogsDate,
+  useGetScoreboardsScoreboardIdLogsMonthly,
   useGetScoreboardsScoreboardIdLogsWeekly,
   usePutLeadMeasuresLeadMeasureIdLogsDate,
 } from "@/api/generated/daily-log/daily-log";
@@ -106,9 +108,19 @@ export const useDashboardScoreboard = () => {
     scoreboardId !== null
       ? getGetScoreboardsScoreboardIdLogsWeeklyQueryKey(scoreboardId, undefined)
       : null;
+  const monthlyLogsQueryKey =
+    scoreboardId !== null
+      ? getGetScoreboardsScoreboardIdLogsMonthlyQueryKey(scoreboardId, undefined)
+      : null;
 
   const { data: weeklyLogsResponse, isLoading: isWeeklyLogsLoading } =
     useGetScoreboardsScoreboardIdLogsWeekly(scoreboardId ?? 0, undefined, {
+      query: {
+        enabled: scoreboardId !== null,
+      },
+    });
+  const { data: monthlyLogsResponse, isLoading: isMonthlyLogsLoading } =
+    useGetScoreboardsScoreboardIdLogsMonthly(scoreboardId ?? 0, undefined, {
       query: {
         enabled: scoreboardId !== null,
       },
@@ -124,8 +136,19 @@ export const useDashboardScoreboard = () => {
 
   const weeklyLeadMeasures =
     weeklyLogsResponse?.status === 200 ? weeklyLogsResponse.data.leadMeasures ?? [] : [];
+  const monthlySummary =
+    monthlyLogsResponse?.status === 200
+      ? monthlyLogsResponse.data.summary
+      : undefined;
+  const monthLabel =
+    monthlyLogsResponse?.status === 200
+      ? monthlyLogsResponse.data.monthLabel
+      : undefined;
   const activeLeadMeasures = (activeScoreboard?.leadMeasures ?? []).filter(
     (leadMeasure) => leadMeasure.status === "ACTIVE",
+  );
+  const weeklyTargetMeasures = activeLeadMeasures.filter(
+    (leadMeasure) => leadMeasure.period !== "MONTHLY",
   );
   const weeklyById = new Map(
     weeklyLeadMeasures.map((leadMeasure) => [
@@ -133,14 +156,16 @@ export const useDashboardScoreboard = () => {
       leadMeasure,
     ]),
   );
-  const totalRate = activeLeadMeasures.reduce((accumulator, leadMeasure) => {
+
+  const weeklyTotalRate = weeklyTargetMeasures.reduce((accumulator, leadMeasure) => {
     const weekly = weeklyById.get(toNumberId(leadMeasure.id));
     return accumulator + (weekly?.achievementRate ?? 0);
   }, 0);
-  const overallRate =
-    activeLeadMeasures.length > 0
-      ? Math.round(totalRate / activeLeadMeasures.length)
+  const weeklyOverallRate =
+    weeklyTargetMeasures.length > 0
+      ? Math.round(weeklyTotalRate / weeklyTargetMeasures.length)
       : 0;
+  const monthlyOverallRate = Math.round(monthlySummary?.achievementRate ?? 0);
   const weekLabel =
     weekDates.length === 7
       ? `${weekDates[0].slice(5).replace("-", ".")} – ${weekDates[6].slice(5).replace("-", ".")}`
@@ -206,6 +231,11 @@ export const useDashboardScoreboard = () => {
               queryKey: weeklyLogsQueryKey,
             })
           : Promise.resolve(),
+        monthlyLogsQueryKey !== null
+          ? queryClient.invalidateQueries({
+              queryKey: monthlyLogsQueryKey,
+            })
+          : Promise.resolve(),
       ]);
 
       setPendingLogKey((value) => (value === currentLogKey ? null : value));
@@ -223,14 +253,17 @@ export const useDashboardScoreboard = () => {
       pendingLogKey !== null ||
       updateLogMutation.isPending ||
       deleteLogMutation.isPending,
+    isMonthlyLogsLoading,
     isWeeklyLogsLoading,
-    overallRate,
+    monthlyOverallRate,
     pendingLogKey,
     scoreboardError,
     today,
     toggleLog,
+    monthLabel,
     weekDates,
     weekLabel,
+    weeklyOverallRate,
     weeklyById,
     workspace,
     workspaceError,
