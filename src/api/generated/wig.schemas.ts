@@ -133,6 +133,51 @@ export interface WeeklyLogsResponse {
   leadMeasures?: WeeklyLogItem[];
 }
 
+export type TeamDashboardMemberMeasureLogs = {[key: string]: boolean | null};
+
+export interface TeamDashboardMemberMeasure {
+  id?: number;
+  name?: string;
+  targetValue?: number;
+  achieved?: number;
+  achievementRate?: number;
+  logs?: TeamDashboardMemberMeasureLogs;
+}
+
+export type TeamDashboardMemberRole = typeof TeamDashboardMemberRole[keyof typeof TeamDashboardMemberRole];
+
+
+export const TeamDashboardMemberRole = {
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER',
+} as const;
+
+export interface TeamDashboardMember {
+  userId?: number;
+  nickname?: string;
+  role?: TeamDashboardMemberRole;
+  hasScoreboard?: boolean;
+  /** @nullable */
+  scoreboardId?: number | null;
+  /** @nullable */
+  goalName?: string | null;
+  /** @nullable */
+  lagMeasure?: string | null;
+  achieved?: number;
+  total?: number;
+  achievementRate?: number;
+  isWinning?: boolean;
+  leadMeasures?: TeamDashboardMemberMeasure[];
+}
+
+export interface TeamDashboardResponse {
+  workspaceId?: number;
+  workspaceName?: string;
+  weekStart?: string;
+  weekEnd?: string;
+  members?: TeamDashboardMember[];
+}
+
 export type ScoreboardSummaryStatus = typeof ScoreboardSummaryStatus[keyof typeof ScoreboardSummaryStatus];
 
 
@@ -266,5 +311,10 @@ export type DeleteLeadMeasuresId200 = {
 
 export type GetScoreboardsScoreboardIdLogsWeeklyParams = {
 weekStart?: string;
+};
+
+export type GetDashboardTeamParams = {
+weekStart?: string;
+cursor?: string;
 };
 

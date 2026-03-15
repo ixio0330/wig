@@ -656,6 +656,34 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
+  /dashboard/team:
+    get:
+      summary: 팀 대시보드 조회
+      tags: [Dashboard]
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - name: weekStart
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TeamDashboardResponse' }
+        '404':
+          description: 워크스페이스를 찾을 수 없음
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
 components:
   schemas:
     User:
@@ -761,6 +789,49 @@ components:
         leadMeasures:
           type: array
           items: { $ref: '#/components/schemas/WeeklyLogItem' }
+
+    TeamDashboardMemberMeasure:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        targetValue: { type: integer }
+        achieved: { type: integer }
+        achievementRate: { type: number }
+        logs:
+          type: object
+          additionalProperties:
+            type: boolean
+            nullable: true
+
+    TeamDashboardMember:
+      type: object
+      properties:
+        userId: { type: integer }
+        nickname: { type: string }
+        role: { type: string, enum: [ADMIN, MEMBER] }
+        hasScoreboard: { type: boolean }
+        scoreboardId: { type: integer, nullable: true }
+        goalName: { type: string, nullable: true }
+        lagMeasure: { type: string, nullable: true }
+        achieved: { type: integer }
+        total: { type: integer }
+        achievementRate: { type: number }
+        isWinning: { type: boolean }
+        leadMeasures:
+          type: array
+          items: { $ref: '#/components/schemas/TeamDashboardMemberMeasure' }
+
+    TeamDashboardResponse:
+      type: object
+      properties:
+        workspaceId: { type: integer }
+        workspaceName: { type: string }
+        weekStart: { type: string, format: date }
+        weekEnd: { type: string, format: date }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/TeamDashboardMember' }
 
     ScoreboardSummary:
       type: object

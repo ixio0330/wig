@@ -1,97 +1,43 @@
 "use client";
 
-import { Scoreboard, User, useMockData } from "@/context/MockDataContext";
+import { useTeamDashboard } from "@/app/(protected)/dashboard/_hooks/useTeamDashboard";
+import { TeamDashboardMember } from "@/api/generated/wig.schemas";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Calendar, Target, UserIcon, Zap } from "lucide-react";
+import { Calendar, Target, UserIcon, Users, Zap } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-// Helper: get this week's Mon–Sun date strings
-const getWeekDates = (): string[] => {
-  const dates: string[] = [];
-  const today = new Date();
-  const day = today.getDay();
-  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(today);
-  monday.setDate(diff);
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    dates.push(d.toISOString().split("T")[0]);
-  }
-  return dates;
-};
 
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 
-// ── 팀원 요약 카드 ──────────────────────────────────────────────
-interface MemberCardProps {
-  user: User;
-  scoreboard: Scoreboard;
-  weekDates: string[];
-}
+const formatWeekLabel = (weekStart?: string, weekEnd?: string) => {
+  if (!weekStart || !weekEnd) {
+    return "";
+  }
 
-const MemberCard: React.FC<MemberCardProps> = ({
-  user,
-  scoreboard,
-  weekDates,
-}) => {
-  const activeLeadMeasures = scoreboard.leadMeasures.filter(
-    (lm) => lm.status === "ACTIVE",
-  );
+  return `${weekStart.slice(5).replace("-", ".")} – ${weekEnd.slice(5).replace("-", ".")}`;
+};
 
-  // 이번 주 달성률 계산 (각 지표별 달성률의 평균)
-  const today = new Date().toISOString().split("T")[0];
+const getRateTone = (rate: number) => {
+  if (rate >= 80) {
+    return "text-green-700 bg-green-50 border-green-200";
+  }
 
-  const totalRate = activeLeadMeasures.reduce((acc, lm) => {
-    const weeklyAchievedCount = weekDates.filter(
-      (date) => date <= today && lm.logs.find((l) => l.logDate === date)?.value,
-    ).length;
+  if (rate >= 50) {
+    return "text-amber-700 bg-amber-50 border-amber-200";
+  }
 
-    let weeklyTarget = lm.targetValue;
-    if (lm.period === "MONTHLY") {
-      weeklyTarget = Math.max(1, Math.round(lm.targetValue / 4));
-    }
+  return "text-red-700 bg-red-50 border-red-200";
+};
 
-    // 개별 지표의 달성률 (최대 100%)
-    const lmRate = Math.min((weeklyAchievedCount / weeklyTarget) * 100, 100);
-    return acc + lmRate;
-  }, 0);
-
-  const rate =
-    activeLeadMeasures.length > 0
-      ? Math.round(totalRate / activeLeadMeasures.length)
-      : 0;
-
-  // UI용 요약 (단순히 총 달성 건수 / 총 목표 건수)
-  const totalAchievedCount = activeLeadMeasures.reduce((acc, lm) => {
-    return (
-      acc +
-      weekDates.filter((date) => lm.logs.find((l) => l.logDate === date)?.value)
-        .length
-    );
-  }, 0);
-  const totalTargetCount = activeLeadMeasures.reduce((acc, lm) => {
-    let weeklyTarget = lm.targetValue;
-    if (lm.period === "MONTHLY") {
-      weeklyTarget = Math.max(1, Math.round(lm.targetValue / 4));
-    }
-    return acc + weeklyTarget;
-  }, 0);
-
-  const rateColor =
-    rate >= 80
-      ? "text-green-700 bg-green-50 border-green-200"
-      : rate >= 50
-        ? "text-amber-700 bg-amber-50 border-amber-200"
-        : "text-red-700 bg-red-50 border-red-200";
+function MemberCard({ member }: { member: TeamDashboardMember }) {
+  const achievementRate = member.achievementRate ?? 0;
+  const achieved = member.achieved ?? 0;
+  const total = member.total ?? 0;
+  const hasScoreboard = member.hasScoreboard ?? false;
 
   return (
     <Card className="bg-white border border-border rounded-lg p-5 space-y-4 hover:border-[rgba(205,207,213,1)] transition-colors">
-      {/* 헤더 */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -99,102 +45,90 @@ const MemberCard: React.FC<MemberCardProps> = ({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-text-primary truncate">
-              {user.nickname}
+              {member.nickname}
             </p>
             <p className="text-xs text-text-muted truncate">
-              {scoreboard.goalName}
+              {hasScoreboard ? member.goalName : "활성 점수판 없음"}
             </p>
           </div>
         </div>
         <Badge
-          className={`flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded border ${rateColor}`}
+          className={`flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded border ${getRateTone(achievementRate)}`}
         >
-          {rate}%
+          {hasScoreboard ? `${achievementRate}%` : "미설정"}
         </Badge>
       </div>
 
-      {/* 후행지표 */}
       <div className="flex items-center gap-2 text-xs text-text-secondary bg-sub-background border border-border rounded px-3 py-2">
         <Target className="w-3 h-3 text-text-muted flex-shrink-0" />
-        <span className="truncate">{scoreboard.lagMeasure}</span>
+        <span className="truncate">
+          {hasScoreboard
+            ? member.lagMeasure
+            : "점수판을 만들면 팀 대시보드에 집계됩니다."}
+        </span>
       </div>
 
-      {/* 진행률 바 */}
       <div className="space-y-1.5">
         <div className="flex justify-between text-[11px] text-text-muted">
           <span>이번 주 달성도</span>
           <span className="font-mono">
-            {totalAchievedCount} / {totalTargetCount}
+            {achieved} / {total}
           </span>
         </div>
         <div className="h-1.5 w-full bg-sub-background rounded-full overflow-hidden border border-border">
           <div
             className="h-full bg-primary rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(rate, 100)}%` }}
+            style={{ width: `${Math.min(achievementRate, 100)}%` }}
           />
         </div>
       </div>
 
-      {/* 선행지표 목록 */}
-      {activeLeadMeasures.length > 0 && (
+      {hasScoreboard && (member.leadMeasures?.length ?? 0) > 0 ? (
         <ul className="space-y-1">
-          {activeLeadMeasures.map((lm) => {
-            const lmAchieved = weekDates.filter(
-              (date) => lm.logs.find((l) => l.logDate === date)?.value,
-            ).length;
-            return (
-              <li
-                key={lm.id}
-                className="flex justify-between items-center text-[11px]"
-              >
-                <span className="text-text-secondary truncate max-w-[75%]">
-                  {lm.name}
-                </span>
-                <span className="font-mono text-text-muted flex-shrink-0">
-                  {lmAchieved}/{lm.targetValue}
-                </span>
-              </li>
-            );
-          })}
+          {member.leadMeasures?.map((leadMeasure) => (
+            <li
+              key={leadMeasure.id}
+              className="flex justify-between items-center text-[11px]"
+            >
+              <span className="text-text-secondary truncate max-w-[75%]">
+                {leadMeasure.name}
+              </span>
+              <span className="font-mono text-text-muted flex-shrink-0">
+                {leadMeasure.achieved}/{leadMeasure.targetValue}
+              </span>
+            </li>
+          ))}
         </ul>
-      )}
+      ) : null}
     </Card>
   );
-};
-
-// ── 주간 점수판 테이블 (읽기 전용) ────────────────────────────
-interface WeeklyTableProps {
-  user: User;
-  scoreboard: Scoreboard;
-  weekDates: string[];
 }
 
-const WeeklyTable: React.FC<WeeklyTableProps> = ({
-  user,
-  scoreboard,
+function WeeklyTable({
+  member,
   weekDates,
-}) => {
-  const activeLeadMeasures = scoreboard.leadMeasures.filter(
-    (lm) => lm.status === "ACTIVE",
-  );
-  const today = new Date().toISOString().split("T")[0];
+}: {
+  member: TeamDashboardMember;
+  weekDates: string[];
+}) {
+  if (!(member.hasScoreboard ?? false) || (member.leadMeasures?.length ?? 0) === 0) {
+    return null;
+  }
 
-  if (activeLeadMeasures.length === 0) return null;
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <div className="space-y-2">
-      {/* 팀원 이름 헤더 */}
       <div className="flex items-center gap-2 px-1">
         <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
           <UserIcon className="w-3 h-3 text-primary" />
         </div>
         <span className="text-xs font-bold text-text-primary">
-          {user.nickname}
+          {member.nickname}
         </span>
-        <span className="text-xs text-text-muted">— {scoreboard.goalName}</span>
+        <span className="text-xs text-text-muted">— {member.goalName}</span>
       </div>
 
-      {/* 테이블 */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs min-w-[500px]">
@@ -203,7 +137,7 @@ const WeeklyTable: React.FC<WeeklyTableProps> = ({
                 <th className="text-left px-3 py-2 text-text-secondary font-medium w-[40%]">
                   선행지표
                 </th>
-                {weekDates.map((date, i) => (
+                {weekDates.map((date, index) => (
                   <th
                     key={date}
                     className={`text-center px-1 py-2 font-medium w-[8%] ${
@@ -214,28 +148,26 @@ const WeeklyTable: React.FC<WeeklyTableProps> = ({
                           : "text-text-secondary"
                     }`}
                   >
-                    {DAY_LABELS[i]}
+                    {DAY_LABELS[index]}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {activeLeadMeasures.map((lm, idx) => (
+              {member.leadMeasures?.map((leadMeasure, index) => (
                 <tr
-                  key={lm.id}
+                  key={leadMeasure.id}
                   className={
-                    idx < activeLeadMeasures.length - 1
+                    index < (member.leadMeasures?.length ?? 0) - 1
                       ? "border-b border-border"
                       : ""
                   }
                 >
                   <td className="px-3 py-2.5 text-text-primary font-medium truncate max-w-0">
-                    <span className="block truncate">{lm.name}</span>
+                    <span className="block truncate">{leadMeasure.name}</span>
                   </td>
                   {weekDates.map((date) => {
-                    const achieved = lm.logs.find(
-                      (l) => l.logDate === date,
-                    )?.value;
+                    const value = leadMeasure.logs?.[date] ?? null;
                     const isFuture = date > today;
                     return (
                       <td
@@ -244,14 +176,12 @@ const WeeklyTable: React.FC<WeeklyTableProps> = ({
                       >
                         {isFuture ? (
                           <span className="text-text-muted">·</span>
-                        ) : achieved ? (
-                          <span className="text-green-600 font-bold text-sm">
-                            ○
-                          </span>
+                        ) : value === true ? (
+                          <span className="text-green-600 font-bold text-sm">○</span>
+                        ) : value === false ? (
+                          <span className="text-red-400 font-bold text-sm">✕</span>
                         ) : (
-                          <span className="text-red-400 font-bold text-sm">
-                            ✕
-                          </span>
+                          <span className="text-text-muted">·</span>
                         )}
                       </td>
                     );
@@ -264,31 +194,56 @@ const WeeklyTable: React.FC<WeeklyTableProps> = ({
       </div>
     </div>
   );
-};
+}
 
-// ── 메인 페이지 ───────────────────────────────────────────────
 export default function DashboardPage() {
-  const { user, allScoreboards, mockUsers, workspaceName } = useMockData();
-  const router = useRouter();
-  const weekDates = getWeekDates();
+  const { dashboard, hasNoWorkspace, isLoading, weekDates } = useTeamDashboard();
 
-  useEffect(() => {
-    if (!user) router.push("/");
-  }, [user, router]);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background font-pretendard">
+        <div className="max-w-[860px] mx-auto p-4 md:p-8 space-y-6 animate-pulse">
+          <div className="h-16 rounded-2xl bg-sub-background" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="h-48 rounded-2xl bg-sub-background" />
+            <div className="h-48 rounded-2xl bg-sub-background" />
+          </div>
+          <div className="h-64 rounded-2xl bg-sub-background" />
+        </div>
+      </div>
+    );
+  }
 
-  if (!user) return null;
+  if (hasNoWorkspace || !dashboard) {
+    return (
+      <div className="min-h-screen bg-background font-pretendard">
+        <div className="max-w-[720px] mx-auto p-4 md:p-8">
+          <Card className="card-linear p-8 text-center space-y-4">
+            <div className="mx-auto w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold text-text-primary">
+              아직 워크스페이스가 없습니다
+            </h1>
+            <p className="text-sm text-text-secondary">
+              팀 대시보드를 보려면 먼저 워크스페이스에 참가해야 합니다.
+            </p>
+            <Button asChild className="btn-linear-primary px-4 py-2 text-sm">
+              <Link href="/workspace/new">워크스페이스 만들기</Link>
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
-  const activeScoreboards = allScoreboards.filter(
-    (sb) => sb.status === "ACTIVE",
-  );
-
-  // 이번 주 날짜 범위 표시
-  const weekLabel = `${weekDates[0].slice(5).replace("-", ".")} – ${weekDates[6].slice(5).replace("-", ".")}`;
+  const weekLabel = formatWeekLabel(dashboard.weekStart, dashboard.weekEnd);
+  const members = dashboard.members ?? [];
+  const membersWithScoreboard = members.filter((member) => member.hasScoreboard);
 
   return (
     <div className="min-h-screen bg-background font-pretendard">
       <div className="max-w-[860px] mx-auto p-4 md:p-8 space-y-10 animate-linear-in">
-        {/* ── 헤더 ── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
@@ -296,11 +251,9 @@ export default function DashboardPage() {
             </div>
             <div className="min-w-0">
               <h1 className="text-base font-bold text-text-primary tracking-tight truncate">
-                {workspaceName}
+                {dashboard.workspaceName}
               </h1>
-              <p className="text-[11px] text-text-muted truncate">
-                팀 전체 현황
-              </p>
+              <p className="text-[11px] text-text-muted truncate">팀 전체 현황</p>
             </div>
           </div>
 
@@ -326,7 +279,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* ── 섹션 1: 팀원 요약 카드 ── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-sm font-bold text-text-primary">팀원 현황</h2>
@@ -335,32 +287,21 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          {activeScoreboards.length === 0 ? (
+          {members.length === 0 ? (
             <div className="border border-border rounded-lg p-8 text-center text-text-muted text-sm">
-              아직 활성화된 점수판이 없습니다.
+              아직 팀원이 없습니다.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {activeScoreboards.map((sb) => {
-                const member = mockUsers.find((u) => u.id === sb.userId);
-                if (!member) return null;
-                return (
-                  <MemberCard
-                    key={sb.id}
-                    user={member}
-                    scoreboard={sb}
-                    weekDates={weekDates}
-                  />
-                );
-              })}
+              {members.map((member) => (
+                <MemberCard key={member.userId} member={member} />
+              ))}
             </div>
           )}
         </section>
 
-        {/* ── 구분선 ── */}
         <div className="border-t border-border" />
 
-        {/* ── 섹션 2: 팀 주간 점수판 ── */}
         <section className="space-y-6">
           <div className="px-1">
             <h2 className="text-sm font-bold text-text-primary">
@@ -371,18 +312,19 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {activeScoreboards.map((sb) => {
-            const member = mockUsers.find((u) => u.id === sb.userId);
-            if (!member) return null;
-            return (
+          {membersWithScoreboard.length === 0 ? (
+            <div className="border border-border rounded-lg p-8 text-center text-text-muted text-sm">
+              아직 활성화된 점수판이 없습니다.
+            </div>
+          ) : (
+            membersWithScoreboard.map((member) => (
               <WeeklyTable
-                key={sb.id}
-                user={member}
-                scoreboard={sb}
+                key={member.userId}
+                member={member}
                 weekDates={weekDates}
               />
-            );
-          })}
+            ))
+          )}
         </section>
       </div>
     </div>

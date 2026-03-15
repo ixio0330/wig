@@ -1,5 +1,6 @@
 "use client";
 
+import { getGetScoreboardsScoreboardIdLogsWeeklyQueryKey, useGetScoreboardsScoreboardIdLogsWeekly } from "@/api/generated/daily-log/daily-log";
 import { useGetScoreboardsActive } from "@/api/generated/scoreboard/scoreboard";
 import {
   getGetScoreboardsScoreboardIdLeadMeasuresQueryKey,
@@ -7,10 +8,10 @@ import {
   useGetScoreboardsScoreboardIdLeadMeasures,
   usePostLeadMeasuresIdArchive,
 } from "@/api/generated/lead-measure/lead-measure";
-import { useGetScoreboardsScoreboardIdLogsWeekly } from "@/api/generated/daily-log/daily-log";
 import { useToast } from "@/context/ToastContext";
 import { getApiErrorMessage, toNumberId } from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
+import { getWeekDates } from "@/app/(protected)/dashboard/my/_lib/week";
 
 export const useScoreboardMeasureDetail = (rawMeasureId: string) => {
   const { showToast } = useToast();
@@ -26,26 +27,27 @@ export const useScoreboardMeasureDetail = (rawMeasureId: string) => {
   const activeScoreboard =
     activeScoreboardResponse?.status === 200 ? activeScoreboardResponse.data : null;
   const scoreboardId = toNumberId(activeScoreboard?.id);
+  const weekDates = getWeekDates();
 
-  const { data: leadMeasuresResponse } = useGetScoreboardsScoreboardIdLeadMeasures(
-    scoreboardId ?? 0,
-    undefined,
-    {
-      query: {
-        enabled: scoreboardId !== null,
-      },
+  const {
+    data: leadMeasuresResponse,
+    isLoading: isLeadMeasuresLoading,
+    error: leadMeasuresError,
+  } = useGetScoreboardsScoreboardIdLeadMeasures(scoreboardId ?? 0, undefined, {
+    query: {
+      enabled: scoreboardId !== null,
     },
-  );
+  });
 
-  const { data: weeklyLogsResponse } = useGetScoreboardsScoreboardIdLogsWeekly(
-    scoreboardId ?? 0,
-    undefined,
-    {
-      query: {
-        enabled: scoreboardId !== null,
-      },
+  const {
+    data: weeklyLogsResponse,
+    isLoading: isWeeklyLogsLoading,
+    error: weeklyLogsError,
+  } = useGetScoreboardsScoreboardIdLogsWeekly(scoreboardId ?? 0, undefined, {
+    query: {
+      enabled: scoreboardId !== null,
     },
-  );
+  });
 
   const archiveLeadMeasureMutation = usePostLeadMeasuresIdArchive();
   const deleteLeadMeasureMutation = useDeleteLeadMeasuresId();
@@ -64,25 +66,29 @@ export const useScoreboardMeasureDetail = (rawMeasureId: string) => {
         )
       : null;
 
-  const chartData = [
-    { name: "4주 전", rate: 60 },
-    { name: "3주 전", rate: 85 },
-    { name: "2주 전", rate: 45 },
-    { name: "지난 주", rate: 90 },
-    {
-      name: "이번 주",
-      rate: weeklyMeasure?.achievementRate ?? 0,
-    },
-  ];
+  const chartData = weekDates.map((date, index) => ({
+    date,
+    label: `${index + 1}일차`,
+    dayLabel: ["월", "화", "수", "목", "금", "토", "일"][index] ?? "",
+    value: weeklyMeasure?.logs?.[date] ?? null,
+  }));
 
   const invalidateLeadMeasures = async () => {
     if (scoreboardId !== null) {
-      await queryClient.invalidateQueries({
-        queryKey: getGetScoreboardsScoreboardIdLeadMeasuresQueryKey(
-          scoreboardId,
-          undefined,
-        ),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getGetScoreboardsScoreboardIdLeadMeasuresQueryKey(
+            scoreboardId,
+            undefined,
+          ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getGetScoreboardsScoreboardIdLogsWeeklyQueryKey(
+            scoreboardId,
+            undefined,
+          ),
+        }),
+      ]);
     }
   };
 
@@ -94,6 +100,7 @@ export const useScoreboardMeasureDetail = (rawMeasureId: string) => {
     try {
       await archiveLeadMeasureMutation.mutateAsync({ id: measureId });
       await invalidateLeadMeasures();
+      showToast("success", "지표를 보관했습니다.");
       return true;
     } catch (error) {
       showToast(
@@ -112,6 +119,7 @@ export const useScoreboardMeasureDetail = (rawMeasureId: string) => {
     try {
       await deleteLeadMeasureMutation.mutateAsync({ id: measureId });
       await invalidateLeadMeasures();
+      showToast("success", "지표를 삭제했습니다.");
       return true;
     } catch (error) {
       showToast(
@@ -124,9 +132,19 @@ export const useScoreboardMeasureDetail = (rawMeasureId: string) => {
 
   return {
     chartData,
+    hasActiveScoreboard: scoreboardId !== null,
+    isDeleting: deleteLeadMeasureMutation.isPending,
+    isArchiving: archiveLeadMeasureMutation.isPending,
+    isLoading:
+      scoreboardId === null
+        ? false
+        : isLeadMeasuresLoading || isWeeklyLogsLoading,
+    leadMeasuresError,
     measure,
     measureId,
     remove,
     archive,
+    weeklyLogsError,
+    weeklyMeasure,
   };
 };

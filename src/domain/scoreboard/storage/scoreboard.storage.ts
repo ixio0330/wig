@@ -90,6 +90,21 @@ export class ScoreboardStorage {
     })) as ScoreboardWithLeadMeasures | undefined;
   }
 
+  async findActiveScoreboardsByWorkspace(
+    workspaceId: number,
+  ): Promise<ScoreboardWithLeadMeasures[]> {
+    return (await this.db.query.scoreboards.findMany({
+      where: and(
+        eq(scoreboards.workspaceId, workspaceId),
+        eq(scoreboards.status, "ACTIVE"),
+      ),
+      with: {
+        leadMeasures: true,
+      },
+      orderBy: [desc(scoreboards.createdAt)],
+    })) as ScoreboardWithLeadMeasures[];
+  }
+
   async updateScoreboard(
     id: number,
     input: UpdateScoreboardInput,
