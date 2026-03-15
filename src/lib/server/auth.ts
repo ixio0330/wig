@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
 import { eq, and, gt } from "drizzle-orm";
+import { getDb } from "@/db";
 import { sessions } from "@/db/schema";
 
 export const SESSION_COOKIE = "wig_sid";
+type Db = ReturnType<typeof getDb>;
+type Session = typeof sessions.$inferSelect;
 
-export const getSession = async (db: any) => {
+export const getSession = async (db: Db): Promise<Session | null> => {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
   if (!sessionId) return null;
@@ -13,7 +16,7 @@ export const getSession = async (db: any) => {
   const session = await db.query.sessions.findFirst({
     where: and(
       eq(sessions.id, sessionId),
-      gt(sessions.expiresAt, new Date())
+      gt(sessions.expiresAt, new Date()),
     ),
   });
 

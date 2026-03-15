@@ -1,4 +1,4 @@
-import { ErrorCode } from "./api-response";
+import { ErrorCode } from "@/lib/server/api-response";
 
 // 공통 부모 에러 클래스
 export abstract class PlatformError extends Error {
