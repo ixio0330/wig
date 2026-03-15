@@ -1,15 +1,15 @@
 "use client";
 
+import {
+  usePostAuthLogout,
+  usePutAuthPassword,
+} from "@/api/generated/auth/auth";
 import { getGetDashboardTeamQueryKey } from "@/api/generated/dashboard/dashboard";
 import {
   getGetUsersMeQueryKey,
   useGetUsersMe,
   usePutUsersMe,
 } from "@/api/generated/profile/profile";
-import {
-  usePostAuthLogout,
-  usePutAuthPassword,
-} from "@/api/generated/auth/auth";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import PushSubscriptionManager from "@/components/PushSubscriptionManager";
 import { Button } from "@/components/ui/Button";
@@ -25,7 +25,6 @@ import {
   Edit2,
   Key,
   LogOut,
-  Trash2,
   User as UserIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -43,12 +42,14 @@ interface MenuItem {
 export default function ProfilePage() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersMe();
+  const { data: profileResponse, isLoading: isProfileLoading } =
+    useGetUsersMe();
   const updateNicknameMutation = usePutUsersMe();
   const changePasswordMutation = usePutAuthPassword();
   const logoutMutation = usePostAuthLogout();
 
   const user = profileResponse?.status === 200 ? profileResponse.data : null;
+  const pushUserId = user?.id != null ? String(user.id) : null;
 
   if (isProfileLoading) {
     return <LoadingSpinner />;
@@ -57,6 +58,9 @@ export default function ProfilePage() {
   if (!user) {
     return null;
   }
+
+  const nickname = user.nickname ?? "사용자";
+  const customId = user.customId ?? "";
 
   const updateStoredNickname = (nickname: string) => {
     const raw = window.localStorage.getItem("wig_user");
@@ -82,6 +86,9 @@ export default function ProfilePage() {
       // Ignore local storage parse errors
     }
   };
+
+  const getSafeNickname = (nextNickname: string | undefined) =>
+    nextNickname ?? nickname;
 
   const handleLogout = async () => {
     try {
@@ -109,7 +116,7 @@ export default function ProfilePage() {
           description: "대시보드에 표시될 이름을 변경합니다.",
           danger: false,
           onClick: async () => {
-            const next = prompt("새로운 닉네임을 입력하세요:", user.nickname);
+            const next = prompt("새로운 닉네임을 입력하세요:", nickname);
 
             if (!next) {
               return;
@@ -126,7 +133,7 @@ export default function ProfilePage() {
                 throw response;
               }
 
-              updateStoredNickname(response.data.nickname);
+              updateStoredNickname(getSafeNickname(response.data.nickname));
               await Promise.all([
                 queryClient.invalidateQueries({
                   queryKey: getGetUsersMeQueryKey(),
@@ -185,7 +192,8 @@ export default function ProfilePage() {
 
               showToast(
                 "success",
-                response.data.message || "비밀번호가 성공적으로 변경되었습니다.",
+                response.data.message ||
+                  "비밀번호가 성공적으로 변경되었습니다.",
               );
             } catch (error) {
               showToast(
@@ -205,9 +213,9 @@ export default function ProfilePage() {
           icon: <Bell className="w-3.5 h-3.5" />,
           title: "매일 밤 9시 알림",
           description: "리드 지표 기록을 잊지 않도록 푸시 알림을 보냅니다.",
-          rightElement: (
-            <PushSubscriptionManager userId={user.id} variant="toggle" />
-          ),
+          rightElement: pushUserId ? (
+            <PushSubscriptionManager userId={pushUserId} variant="toggle" />
+          ) : null,
         },
       ],
     },
@@ -221,28 +229,30 @@ export default function ProfilePage() {
           description: "현재 기기에서 세션을 종료합니다.",
           danger: false,
           onClick: () => {
-            void handleLogout();
-          },
-        },
-      ],
-    },
-    {
-      label: "위험 구역",
-      items: [
-        {
-          id: "delete",
-          icon: <Trash2 className="w-3.5 h-3.5 text-danger" />,
-          title: "서비스 탈퇴",
-          description: "모든 데이터가 삭제되며 복구할 수 없습니다.",
-          danger: true,
-          onClick: () => {
-            if (confirm("정말 탈퇴하시겠습니까? 기록이 모두 사라집니다.")) {
+            if (confirm("로그아웃할까요?")) {
               void handleLogout();
             }
           },
         },
       ],
     },
+    // {
+    //   label: "위험 구역",
+    //   items: [
+    //     {
+    //       id: "delete",
+    //       icon: <Trash2 className="w-3.5 h-3.5 text-danger" />,
+    //       title: "서비스 탈퇴",
+    //       description: "모든 데이터가 삭제되며 복구할 수 없습니다.",
+    //       danger: true,
+    //       onClick: () => {
+    //         if (confirm("정말 탈퇴하시겠습니까? 기록이 모두 사라집니다.")) {
+    //           void handleLogout();
+    //         }
+    //       },
+    //     },
+    //   ],
+    // },
   ];
 
   return (
@@ -270,10 +280,10 @@ export default function ProfilePage() {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-text-primary tracking-tight">
-                {user.nickname}
+                {nickname}
               </h1>
             </div>
-            <p className="text-xs text-text-muted mt-0.5">@{user.customId}</p>
+            <p className="text-xs text-text-muted mt-0.5">@{customId}</p>
           </div>
         </Card>
 
