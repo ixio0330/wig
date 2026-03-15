@@ -8,10 +8,7 @@ import {
   Activity,
   Archive,
   ArrowLeft,
-  CalendarDays,
-  FolderArchive,
   Plus,
-  RotateCcw,
   Save,
   TrendingUp,
   Zap,
@@ -19,31 +16,11 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-const dateFormatter = new Intl.DateTimeFormat("ko-KR", {
-  month: "short",
-  day: "numeric",
-});
-
-const formatDate = (value?: string | null) => {
-  if (!value) {
-    return "날짜 미정";
-  }
-
-  const parsed = new Date(`${value}T00:00:00+09:00`);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return dateFormatter.format(parsed);
-};
-
 export default function SetupPage() {
   const router = useRouter();
   const {
     activeTooltip,
     addMeasureRow,
-    archivedScoreboards,
     archive,
     goalName,
     handleMeasureChange,
@@ -51,9 +28,6 @@ export default function SetupPage() {
     isEditMode,
     lagMeasure,
     measures,
-    pendingReactivationId,
-    reactivate,
-    recentlyArchivedId,
     removeMeasureRow,
     setActiveTooltip,
     setGoalName,
@@ -69,7 +43,6 @@ export default function SetupPage() {
       }
     });
   };
-  const canReactivateArchived = !isEditMode;
 
   return (
     <div className="min-h-screen bg-background font-pretendard">
@@ -85,15 +58,6 @@ export default function SetupPage() {
                 <ArrowLeft className="w-3.5 h-3.5" />
               </Link>
             </Button>
-            <Button
-              asChild
-              className="px-2.5 py-2 rounded-lg border border-border flex items-center justify-center gap-1.5 text-[11px] font-bold text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors"
-            >
-              <Link href="/scoreboards">
-                <FolderArchive className="w-3.5 h-3.5" />
-                점수판 보관함
-              </Link>
-            </Button>
           </div>
           <p className="text-xs text-text-muted">점수판 설정</p>
           <div className="w-8" />
@@ -105,102 +69,9 @@ export default function SetupPage() {
             {isEditMode ? "현재 목표 수정" : "다음 점수판 정하기"}
           </h1>
           <p className="text-xs text-text-muted leading-relaxed">
-            {canReactivateArchived
-              ? "보관된 점수판을 다시 활성화하거나, 새로운 점수판을 만들어 바로 이어갈 수 있어요."
-              : "하나의 목표(WIG) · 성공 척도(후행지표) · 핵심 행동(선행지표)을 설정하세요."}
+            하나의 목표(WIG) · 성공 척도(후행지표) · 핵심 행동(선행지표)을 설정하세요.
           </p>
         </div>
-
-        {archivedScoreboards.length > 0 && (
-          <Card className="border border-border rounded-lg overflow-hidden">
-            <div className="px-5 py-3 bg-sub-background border-b border-border flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Archive className="w-3.5 h-3.5 text-text-muted" />
-                <span className="text-xs font-bold text-text-primary">
-                  보관된 점수판
-                </span>
-              </div>
-              <span className="text-[10px] text-text-muted">
-                {canReactivateArchived
-                  ? "하나를 다시 활성화할 수 있어요"
-                  : "현재 목표를 보관하면 다른 점수판을 활성화할 수 있어요"}
-              </span>
-            </div>
-
-            <div className="divide-y divide-border">
-              {archivedScoreboards.map((scoreboard) => {
-                const scoreboardId = typeof scoreboard.id === "number"
-                  ? scoreboard.id
-                  : null;
-                const isRecentlyArchived = scoreboardId === recentlyArchivedId;
-                const isReactivating = scoreboardId === pendingReactivationId;
-
-                return (
-                  <div
-                    key={scoreboard.id ?? scoreboard.goalName}
-                    className={`p-5 space-y-3 transition-colors ${
-                      isRecentlyArchived ? "bg-primary/5" : "bg-white"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-text-primary">
-                            {scoreboard.goalName || "이름 없는 점수판"}
-                          </p>
-                          {isRecentlyArchived && (
-                            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
-                              방금 보관됨
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          {scoreboard.lagMeasure || "후행지표 없음"}
-                        </p>
-                      </div>
-
-                      <Button
-                        type="button"
-                        disabled={
-                          !scoreboardId || !canReactivateArchived || isReactivating
-                        }
-                        onClick={() => {
-                          if (!scoreboardId) {
-                            return;
-                          }
-
-                          void reactivate(scoreboardId).then((isSuccess) => {
-                            if (isSuccess) {
-                              router.push("/dashboard/my");
-                            }
-                          });
-                        }}
-                        className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                          canReactivateArchived
-                            ? "border border-border text-text-secondary hover:border-[rgba(205,207,213,1)]"
-                            : "border border-border bg-sub-background text-text-muted cursor-not-allowed"
-                        }`}
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        {isReactivating ? "활성화 중..." : "다시 활성화"}
-                      </Button>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-sub-background px-2 py-1 border border-border">
-                        <CalendarDays className="w-3 h-3" />
-                        {formatDate(scoreboard.startDate)} 시작
-                        {scoreboard.endDate
-                          ? ` · ${formatDate(scoreboard.endDate)} 종료`
-                          : ""}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* ── 가중목 ── */}
