@@ -1,12 +1,19 @@
 "use client";
 
 import { getGetDashboardTeamQueryKey } from "@/api/generated/dashboard/dashboard";
-import { getGetUsersMeQueryKey, usePutUsersMe } from "@/api/generated/profile/profile";
+import {
+  getGetUsersMeQueryKey,
+  useGetUsersMe,
+  usePutUsersMe,
+} from "@/api/generated/profile/profile";
+import {
+  usePostAuthLogout,
+  usePutAuthPassword,
+} from "@/api/generated/auth/auth";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import PushSubscriptionManager from "@/components/PushSubscriptionManager";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { useMockData } from "@/context/MockDataContext";
 import { useToast } from "@/context/ToastContext";
 import { getApiErrorMessage } from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +28,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface MenuItem {
   id: string;
@@ -33,12 +41,63 @@ interface MenuItem {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const { user, updateProfile, logout, changePassword } = useMockData();
   const { showToast } = useToast();
+  const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersMe();
   const updateNicknameMutation = usePutUsersMe();
+  const changePasswordMutation = usePutAuthPassword();
+  const logoutMutation = usePostAuthLogout();
 
-  if (!user) return null;
+  const user = profileResponse?.status === 200 ? profileResponse.data : null;
+
+  if (isProfileLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const updateStoredNickname = (nickname: string) => {
+    const raw = window.localStorage.getItem("wig_user");
+
+    if (!raw) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as {
+        id?: string;
+        customId?: string;
+        nickname?: string;
+      };
+      window.localStorage.setItem(
+        "wig_user",
+        JSON.stringify({
+          ...parsed,
+          nickname,
+        }),
+      );
+    } catch {
+      // Ignore local storage parse errors
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await logoutMutation.mutateAsync();
+      if (response.status !== 204) {
+        throw response;
+      }
+    } catch {
+      // Continue logout flow even when server-side logout fails.
+    } finally {
+      window.localStorage.removeItem("wig_user");
+      router.push("/");
+      router.refresh();
+    }
+  };
 
   const menuGroups: { label: string; items: MenuItem[] }[] = [
     {
@@ -68,7 +127,7 @@ export default function ProfilePage() {
                 throw response;
               }
 
-              updateProfile(response.data.nickname);
+              updateStoredNickname(response.data.nickname);
               await Promise.all([
                 queryClient.invalidateQueries({
                   queryKey: getGetUsersMeQueryKey(),
@@ -98,16 +157,26 @@ export default function ProfilePage() {
             const newPw = prompt("새로운 비밀번호를 입력하세요:");
             if (!newPw) return;
 
-            const res = await changePassword(currentPw, newPw);
-            if (res.success) {
+            try {
+              const response = await changePasswordMutation.mutateAsync({
+                data: {
+                  currentPassword: currentPw,
+                  newPassword: newPw,
+                },
+              });
+
+              if (response.status !== 200) {
+                throw response;
+              }
+
               showToast(
                 "success",
-                res.message || "비밀번호가 성공적으로 변경되었습니다.",
+                response.data.message || "비밀번호가 성공적으로 변경되었습니다.",
               );
-            } else {
+            } catch (error) {
               showToast(
                 "error",
-                res.message || "비밀번호 변경에 실패했습니다.",
+                getApiErrorMessage(error, "비밀번호 변경에 실패했습니다."),
               );
             }
           },
@@ -137,7 +206,9 @@ export default function ProfilePage() {
           title: "로그아웃",
           description: "현재 기기에서 세션을 종료합니다.",
           danger: false,
-          onClick: logout,
+          onClick: () => {
+            void handleLogout();
+          },
         },
       ],
     },
@@ -152,7 +223,7 @@ export default function ProfilePage() {
           danger: true,
           onClick: () => {
             if (confirm("정말 탈퇴하시겠습니까? 기록이 모두 사라집니다.")) {
-              logout();
+              void handleLogout();
             }
           },
         },
@@ -187,9 +258,6 @@ export default function ProfilePage() {
               <h1 className="text-lg font-bold text-text-primary tracking-tight">
                 {user.nickname}
               </h1>
-              <Badge className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded border border-primary/20">
-                멤버
-              </Badge>
             </div>
             <p className="text-xs text-text-muted mt-0.5">@{user.customId}</p>
           </div>

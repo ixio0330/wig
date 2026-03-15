@@ -60,6 +60,12 @@ export default function MyDashboardPage() {
     workspace,
   } = useDashboardScoreboard();
   const [nickname, setNickname] = useState<string | null>(null);
+  const weeklyGoalCount = activeLeadMeasures.filter(
+    (leadMeasure) => leadMeasure.period === "WEEKLY",
+  ).length;
+  const monthlyGoalCount = activeLeadMeasures.filter(
+    (leadMeasure) => leadMeasure.period === "MONTHLY",
+  ).length;
 
   useEffect(() => {
     setNickname(getStoredNickname());
@@ -210,6 +216,9 @@ export default function MyDashboardPage() {
               >
                 {overallRate}%
               </p>
+              <p className="text-[10px] text-text-muted">
+                이번 달 달성률: 월간 목표 집계 준비중
+              </p>
             </div>
           </div>
 
@@ -228,9 +237,15 @@ export default function MyDashboardPage() {
 
         <section className="space-y-3">
           <div className="flex items-center justify-between px-0.5">
-            <h2 className="text-sm font-bold text-text-primary">
-              주간 선행지표
-            </h2>
+            <div className="space-y-1">
+              <h2 className="text-sm font-bold text-text-primary">
+                주간 선행지표
+              </h2>
+              <p className="text-[11px] text-text-muted">
+                주간 목표({weeklyGoalCount}개)는 이번 주 기준으로 집계하고, 월간
+                목표({monthlyGoalCount}개)는 이번 달 누적으로 집계할 예정입니다.
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-text-muted bg-sub-background border border-border px-2 py-1 rounded font-mono">
                 {weekLabel}
