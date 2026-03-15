@@ -74,6 +74,7 @@ export class DailyLogService {
     leadMeasures: Array<{
       id: number;
       name: string;
+      period: "WEEKLY" | "MONTHLY";
       targetValue: number;
       logs: Record<string, boolean | null>;
       achieved: number;
@@ -185,6 +186,7 @@ export class DailyLogService {
       return {
         id: measure.id,
         name: measure.name,
+        period: measure.period,
         targetValue: measure.targetValue,
         logs: logMap,
         achieved,
@@ -238,9 +240,7 @@ export class DailyLogService {
         achievementRate: summaryRate,
         isWinning: summaryRate >= 80,
       },
-      leadMeasures: leadMeasures.filter((measure) =>
-        measures.find((item) => item.id === measure.id)?.period === "MONTHLY",
-      ),
+      leadMeasures,
     };
   }
 
