@@ -1,5 +1,6 @@
 "use client";
 
+import { useGetUsersMe } from "@/api/generated/profile/profile";
 import { useDashboardScoreboard } from "@/app/(protected)/dashboard/my/_hooks/useDashboardScoreboard";
 import {
   DAY_LABELS,
@@ -23,30 +24,6 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-type StoredUser = {
-  nickname?: string;
-};
-
-const getStoredNickname = (): string | null => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const raw = window.localStorage.getItem("wig_user");
-
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    const user = JSON.parse(raw) as StoredUser;
-    return user.nickname ?? null;
-  } catch {
-    return null;
-  }
-};
 
 export default function MyDashboardPage() {
   const {
@@ -77,7 +54,13 @@ export default function MyDashboardPage() {
     weeklyById,
     workspace,
   } = useDashboardScoreboard();
-  const [nickname, setNickname] = useState<string | null>(null);
+  const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersMe({
+    query: {
+      retry: false,
+    },
+  });
+  const nickname =
+    profileResponse?.status === 200 ? profileResponse.data.nickname : null;
   const weeklyGoalCount = activeLeadMeasures.filter(
     (leadMeasure) => leadMeasure.period === "WEEKLY",
   ).length;
@@ -86,12 +69,9 @@ export default function MyDashboardPage() {
   ).length;
   const monthWeeks = getMonthCalendarWeeks(selectedDate);
 
-  useEffect(() => {
-    setNickname(getStoredNickname());
-  }, []);
-
   if (
     isLoading ||
+    isProfileLoading ||
     (activeScoreboard &&
       ((selectedView === "week" && isWeeklyLogsLoading) ||
         (selectedView === "month" && isMonthlyLogsLoading)) &&
