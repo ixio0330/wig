@@ -103,8 +103,9 @@ export const useDashboardScoreboard = () => {
   const queryClient = useQueryClient();
   const [pendingLogKey, setPendingLogKey] = useState<string | null>(null);
   const today = getTodayInKst();
-  const selectedView = isDashboardView(searchParams.get("view"))
-    ? searchParams.get("view")
+  const selectedViewParam = searchParams.get("view");
+  const selectedView: DashboardView = isDashboardView(selectedViewParam)
+    ? selectedViewParam
     : "week";
   const rawSelectedDate = isValidDateString(searchParams.get("date"))
     ? (searchParams.get("date") as string)
