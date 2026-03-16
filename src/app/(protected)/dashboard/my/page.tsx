@@ -198,8 +198,8 @@ export default function MyDashboardPage() {
           </div>
         </header>
 
-        <Card className="border border-border rounded-lg overflow-hidden">
-          <div className="px-6 py-4 flex justify-between items-center gap-4 border-b border-border">
+        <Card className="overflow-hidden rounded-lg border border-border">
+          <div className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-row items-center gap-4">
               <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Zap className="w-4 h-4 text-primary" />
@@ -214,7 +214,7 @@ export default function MyDashboardPage() {
               </div>
             </div>
 
-            <div className="text-right space-y-1">
+            <div className="space-y-1 text-left sm:text-right">
               <p className="text-[10px] text-text-muted">이번 주 달성률</p>
               <p
                 className={`text-2xl font-bold font-mono tracking-tight ${
@@ -227,7 +227,7 @@ export default function MyDashboardPage() {
               >
                 {weeklyOverallRate}%
               </p>
-              <div className="flex items-center justify-end gap-1 text-[10px] text-text-muted">
+              <div className="flex flex-wrap items-center gap-1 text-[10px] text-text-muted sm:justify-end">
                 <span>이번 달 달성률{monthLabel ? ` (${monthLabel})` : ""}</span>
                 <strong
                   className={`font-mono ${
@@ -244,13 +244,13 @@ export default function MyDashboardPage() {
             </div>
           </div>
 
-          <div className="px-6 py-3 bg-sub-background flex items-center gap-3">
+          <div className="flex items-start gap-3 bg-sub-background px-4 py-3 sm:px-6 sm:items-center">
             <Target className="w-3.5 h-3.5 text-text-muted" />
-            <div className="flex flex-row items-center">
-              <span className="text-[10px] font-bold text-text-muted tracking-widest mr-3">
+            <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center">
+              <span className="text-[10px] font-bold text-text-muted tracking-widest sm:mr-3">
                 후행지표
               </span>
-              <span className="text-sm text-text-primary font-medium">
+              <span className="text-sm text-text-primary font-medium break-words">
                 {activeScoreboard.lagMeasure}
               </span>
             </div>
@@ -282,7 +282,7 @@ export default function MyDashboardPage() {
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-2 sm:flex sm:items-center">
                   <Button
                     type="button"
                     onClick={() => movePeriod(-1)}
@@ -290,13 +290,13 @@ export default function MyDashboardPage() {
                   >
                     <ChevronLeft className="mx-auto h-4 w-4" />
                   </Button>
-                  <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-white px-3 text-xs text-text-secondary">
-                    <Calendar className="h-3.5 w-3.5 text-text-muted" />
+                  <label className="flex h-9 min-w-0 items-center gap-2 rounded-lg border border-border bg-white px-3 text-xs text-text-secondary">
+                    <Calendar className="h-3.5 w-3.5 shrink-0 text-text-muted" />
                     <input
                       type="date"
                       value={selectedDate}
                       onChange={(event) => setSelectedDate(event.target.value)}
-                      className="bg-transparent font-mono text-text-primary outline-none"
+                      className="min-w-0 flex-1 bg-transparent font-mono text-text-primary outline-none"
                     />
                   </label>
                   <Button
@@ -310,7 +310,7 @@ export default function MyDashboardPage() {
                 <Button
                   type="button"
                   onClick={resetToToday}
-                  className="h-9 rounded-lg border border-border bg-white px-3 text-xs font-bold text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-primary"
+                  className="h-9 w-full rounded-lg border border-border bg-white px-3 text-xs font-bold text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-primary sm:w-auto"
                 >
                   오늘로 돌아가기
                 </Button>
@@ -324,7 +324,7 @@ export default function MyDashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center justify-between px-0.5">
+          <div className="flex flex-col gap-3 px-0.5 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <h2 className="text-sm font-bold text-text-primary">
                 {selectedView === "week" ? "주간 선행지표" : "월간 집계"}
@@ -335,13 +335,13 @@ export default function MyDashboardPage() {
                   : `${monthLabel ?? "선택한 달"} 기준으로 주간/월간 목표(${weeklyGoalCount + monthlyGoalCount}개)를 함께 집계합니다.`}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-text-muted bg-sub-background border border-border px-2 py-1 rounded font-mono">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <span className="inline-flex w-fit text-[11px] text-text-muted bg-sub-background border border-border px-2 py-1 rounded font-mono">
                 {selectedView === "week" ? weekLabel : monthLabel}
               </span>
               <Button
                 asChild
-                className="px-2.5 py-1.5 bg-white border border-border rounded-lg text-[11px] font-bold text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-primary transition-colors flex items-center gap-1"
+                className="justify-center px-2.5 py-1.5 bg-white border border-border rounded-lg text-[11px] font-bold text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-primary transition-colors flex items-center gap-1"
               >
                 <Link href="/setup?mode=addMeasure">
                   <Plus className="w-3 h-3" />
