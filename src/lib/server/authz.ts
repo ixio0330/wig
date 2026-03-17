@@ -29,3 +29,17 @@ export const requireWorkspaceAdmin = async (db: Db, userId: number) => {
 
   return membership;
 };
+
+export const requireWorkspaceAdminInWorkspace = async (
+  db: Db,
+  workspaceId: number,
+  userId: number,
+) => {
+  const membership = await requireWorkspaceMember(db, workspaceId, userId);
+
+  if (membership.role !== "ADMIN") {
+    throw new ForbiddenError("FORBIDDEN");
+  }
+
+  return membership;
+};
