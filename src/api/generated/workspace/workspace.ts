@@ -472,3 +472,104 @@ export function useGetWorkspacesIdMembers<TData = Awaited<ReturnType<typeof getW
 
 
 
+/**
+ * @summary [ADMIN] 워크스페이스 멤버 강제 퇴출
+ */
+export type deleteWorkspacesIdMembersMemberIdResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteWorkspacesIdMembersMemberIdResponse401 = {
+  data: UnauthorizedErrorResponse
+  status: 401
+}
+
+export type deleteWorkspacesIdMembersMemberIdResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type deleteWorkspacesIdMembersMemberIdResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteWorkspacesIdMembersMemberIdResponseSuccess = (deleteWorkspacesIdMembersMemberIdResponse204) & {
+  headers: Headers;
+};
+export type deleteWorkspacesIdMembersMemberIdResponseError = (deleteWorkspacesIdMembersMemberIdResponse401 | deleteWorkspacesIdMembersMemberIdResponse403 | deleteWorkspacesIdMembersMemberIdResponse404) & {
+  headers: Headers;
+};
+
+export type deleteWorkspacesIdMembersMemberIdResponse = (deleteWorkspacesIdMembersMemberIdResponseSuccess | deleteWorkspacesIdMembersMemberIdResponseError)
+
+export const getDeleteWorkspacesIdMembersMemberIdUrl = (id: number,
+    memberId: number,) => {
+
+
+  
+
+  return `/api/workspaces/${id}/members/${memberId}`
+}
+
+export const deleteWorkspacesIdMembersMemberId = async (id: number,
+    memberId: number, options?: RequestInit): Promise<deleteWorkspacesIdMembersMemberIdResponse> => {
+  
+  return customInstance<deleteWorkspacesIdMembersMemberIdResponse>(getDeleteWorkspacesIdMembersMemberIdUrl(id,memberId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+  
+
+
+
+export const getDeleteWorkspacesIdMembersMemberIdMutationOptions = <TError = UnauthorizedErrorResponse | ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspacesIdMembersMemberId>>, TError,{id: number;memberId: number}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspacesIdMembersMemberId>>, TError,{id: number;memberId: number}, TContext> => {
+
+const mutationKey = ['deleteWorkspacesIdMembersMemberId'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWorkspacesIdMembersMemberId>>, {id: number;memberId: number}> = (props) => {
+          const {id,memberId} = props ?? {};
+
+          return  deleteWorkspacesIdMembersMemberId(id,memberId,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWorkspacesIdMembersMemberIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWorkspacesIdMembersMemberId>>>
+    
+    export type DeleteWorkspacesIdMembersMemberIdMutationError = UnauthorizedErrorResponse | ErrorResponse
+
+    /**
+ * @summary [ADMIN] 워크스페이스 멤버 강제 퇴출
+ */
+export const useDeleteWorkspacesIdMembersMemberId = <TError = UnauthorizedErrorResponse | ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspacesIdMembersMemberId>>, TError,{id: number;memberId: number}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWorkspacesIdMembersMemberId>>,
+        TError,
+        {id: number;memberId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteWorkspacesIdMembersMemberIdMutationOptions(options), queryClient);
+    }
+    

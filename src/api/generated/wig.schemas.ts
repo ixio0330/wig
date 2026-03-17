@@ -161,10 +161,11 @@ export const WorkspaceMemberRole = {
 
 export interface WorkspaceMember {
   id?: number;
-  workspaceId?: number;
-  userId?: number;
   nickname?: string;
+  /** @nullable */
+  avatarKey?: string | null;
   role?: WorkspaceMemberRole;
+  isMe?: boolean;
   createdAt?: string;
 }
 
@@ -501,7 +502,6 @@ export type PostAdminUsersBody = {
 };
 
 export type PostAdminUsers201 = {
-  id?: number;
   customId?: string;
   nickname?: string;
 };

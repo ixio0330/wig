@@ -30,6 +30,7 @@ import {
   LogOut,
   Smartphone,
   Sparkles,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -85,6 +86,7 @@ export default function ProfilePage() {
   const nickname = user.nickname ?? "사용자";
   const customId = user.customId ?? "";
   const avatarKey = user.avatarKey ?? null;
+  const isWorkspaceAdmin = user.role === "ADMIN";
   const isActionPending =
     pendingAction !== null ||
     updateNicknameMutation.isPending ||
@@ -218,6 +220,20 @@ export default function ProfilePage() {
       ],
     },
     {
+      label: "워크스페이스",
+      items: isWorkspaceAdmin
+        ? [
+            {
+              id: "members",
+              icon: <Users className="w-3.5 h-3.5" />,
+              title: "멤버 관리",
+              description: "팀원 추가와 멤버 퇴출을 관리합니다.",
+              href: "/profile/members",
+            },
+          ]
+        : [],
+    },
+    {
       label: "데이터",
       items: [
         {
@@ -342,7 +358,9 @@ export default function ProfilePage() {
 
         {/* ── 메뉴 그룹 ── */}
         <div className="space-y-6">
-          {menuGroups.map((group) => (
+          {menuGroups
+            .filter((group) => group.items.length > 0)
+            .map((group) => (
             <div key={group.label} className="space-y-1.5">
               {/* 그룹 레이블 */}
               <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-0.5">
