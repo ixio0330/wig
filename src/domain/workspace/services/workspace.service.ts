@@ -1,10 +1,22 @@
 import { ConflictError, NotFoundError } from "@/lib/server/errors";
 import { WorkspaceStorage } from "@/domain/workspace/storage/workspace.storage";
 
-export class WorkspaceService {
-  constructor(private storage: WorkspaceStorage) {}
+type Workspace = NonNullable<
+  Awaited<ReturnType<WorkspaceStorage["findUserWorkspace"]>>
+>;
+type WorkspaceMembers = Awaited<ReturnType<WorkspaceStorage["findMembers"]>>;
 
-  async getMyWorkspace(userId: number): Promise<any> {
+export interface WorkspaceStoragePort {
+  findUserWorkspace: WorkspaceStorage["findUserWorkspace"];
+  createWorkspace: WorkspaceStorage["createWorkspace"];
+  addMember: WorkspaceStorage["addMember"];
+  findMembers: WorkspaceStorage["findMembers"];
+}
+
+export class WorkspaceService {
+  constructor(private storage: WorkspaceStoragePort) {}
+
+  async getMyWorkspace(userId: number): Promise<Workspace> {
     const workspace = await this.storage.findUserWorkspace(userId);
     if (!workspace) {
       throw new NotFoundError("NOT_FOUND");
@@ -12,7 +24,7 @@ export class WorkspaceService {
     return workspace;
   }
 
-  async createWorkspace(userId: number, name: string): Promise<any> {
+  async createWorkspace(userId: number, name: string): Promise<Workspace> {
     const existing = await this.storage.findUserWorkspace(userId);
     if (existing) {
       throw new ConflictError("ALREADY_IN_WORKSPACE");
@@ -32,7 +44,7 @@ export class WorkspaceService {
     await this.storage.addMember(workspaceId, userId, "MEMBER");
   }
 
-  async getMembers(workspaceId: number): Promise<any[]> {
+  async getMembers(workspaceId: number): Promise<WorkspaceMembers> {
     return await this.storage.findMembers(workspaceId);
   }
 }

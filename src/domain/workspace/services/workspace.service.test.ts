@@ -7,7 +7,7 @@ describe("WorkspaceService", () => {
     createWorkspace: vi.fn(),
     addMember: vi.fn(),
     findMembers: vi.fn(),
-  } as any;
+  };
 
   const service = new WorkspaceService(mockStorage);
 

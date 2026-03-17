@@ -2,6 +2,24 @@ import { workspaceMembers, workspaces } from "@/db/schema";
 import { WorkspaceStorage } from "@/domain/workspace/storage/workspace.storage";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type MockDb = {
+  query: {
+    workspaces: {
+      findFirst: ReturnType<typeof vi.fn>;
+    };
+    workspaceMembers?: {
+      findFirst?: ReturnType<typeof vi.fn>;
+      findMany?: ReturnType<typeof vi.fn>;
+    };
+  };
+  insert: ReturnType<typeof vi.fn>;
+  values: ReturnType<typeof vi.fn>;
+  returning: ReturnType<typeof vi.fn>;
+  select: ReturnType<typeof vi.fn>;
+  from: ReturnType<typeof vi.fn>;
+  where: ReturnType<typeof vi.fn>;
+};
+
 describe("WorkspaceStorage", () => {
   const mockDb = {
     query: {
@@ -15,7 +33,7 @@ describe("WorkspaceStorage", () => {
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
-  } as any;
+  } satisfies MockDb;
 
   const storage = new WorkspaceStorage(mockDb);
 
@@ -76,6 +94,36 @@ describe("WorkspaceStorage", () => {
 
       expect(result).toEqual(mockMembers);
       expect(mockDb.query.workspaceMembers.findMany).toHaveBeenCalled();
+    });
+  });
+
+  describe("findMembershipByUserId", () => {
+    it("사용자의 멤버십을 반환한다", async () => {
+      const mockMembership = { userId: 123, role: "ADMIN" };
+      mockDb.query.workspaceMembers = {
+        ...mockDb.query.workspaceMembers,
+        findFirst: vi.fn().mockResolvedValue(mockMembership),
+      };
+
+      const result = await storage.findMembershipByUserId(123);
+
+      expect(result).toEqual(mockMembership);
+      expect(mockDb.query.workspaceMembers.findFirst).toHaveBeenCalled();
+    });
+  });
+
+  describe("findMembership", () => {
+    it("특정 워크스페이스의 멤버십을 반환한다", async () => {
+      const mockMembership = { workspaceId: 1, userId: 123, role: "MEMBER" };
+      mockDb.query.workspaceMembers = {
+        ...mockDb.query.workspaceMembers,
+        findFirst: vi.fn().mockResolvedValue(mockMembership),
+      };
+
+      const result = await storage.findMembership(1, 123);
+
+      expect(result).toEqual(mockMembership);
+      expect(mockDb.query.workspaceMembers.findFirst).toHaveBeenCalled();
     });
   });
 });
