@@ -1,11 +1,14 @@
 "use client";
 
-import { productUpdates } from "@/content/product-updates";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
-import { getLatestMajorProductUpdate, getProductUpdates } from "@/lib/product-updates";
+import { productUpdates } from "@/content/product-updates";
+import {
+  getLatestMajorProductUpdate,
+  getProductUpdates,
+} from "@/lib/product-updates";
 import { Calendar } from "lucide-react";
 import Link from "next/link";
 
@@ -56,12 +59,6 @@ export default function UpdatesPage() {
                   <Link href={latestMajorUpdate.ctaHref}>
                     {latestMajorUpdate.ctaLabel}
                   </Link>
-                </Button>
-                <Button
-                  asChild
-                  className="rounded-lg border border-border bg-white px-3 py-2 text-xs font-bold text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-text-primary"
-                >
-                  <Link href="/profile">프로필로 돌아가기</Link>
                 </Button>
               </div>
             </div>
@@ -120,7 +117,10 @@ export default function UpdatesPage() {
                       asChild
                       className="shrink-0 self-start rounded-lg border border-border bg-white px-3 py-2 text-xs font-bold text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-text-primary sm:self-auto"
                     >
-                      <Link href={item.ctaHref} className="flex items-center justify-center">
+                      <Link
+                        href={item.ctaHref}
+                        className="flex items-center justify-center"
+                      >
                         <span>{item.ctaLabel}</span>
                       </Link>
                     </Button>

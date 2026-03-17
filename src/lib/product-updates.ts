@@ -1,6 +1,12 @@
 import { productUpdates, type ProductUpdate } from "@/content/product-updates";
 
 export const PRODUCT_UPDATES_NEW_WINDOW_DAYS = 14;
+export const PRODUCT_UPDATES_DISMISS_STORAGE_KEY =
+  "wig:dismissed-product-update";
+
+type DismissedProductUpdate = {
+  updateId: string;
+};
 
 function parsePublishedAt(value: string) {
   const normalized = value.replace(/\./g, "-");
@@ -43,4 +49,47 @@ export function getProductUpdates(now = new Date()) {
 
 export function getLatestMajorProductUpdate(now = new Date()) {
   return getProductUpdates(now).find((update) => update.isMajor) ?? null;
+}
+
+export function readDismissedProductUpdate() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(PRODUCT_UPDATES_DISMISS_STORAGE_KEY);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as DismissedProductUpdate;
+    if (!parsed.updateId) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function dismissProductUpdate(updateId: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(
+    PRODUCT_UPDATES_DISMISS_STORAGE_KEY,
+    JSON.stringify({
+      updateId,
+    } satisfies DismissedProductUpdate),
+  );
+}
+
+export function isProductUpdateDismissed(
+  updateId: string,
+  dismissed: DismissedProductUpdate | null,
+) {
+  return dismissed?.updateId === updateId;
 }
