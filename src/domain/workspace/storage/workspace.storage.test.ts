@@ -13,7 +13,9 @@ type MockDb = {
     };
   };
   insert: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
   delete: ReturnType<typeof vi.fn>;
+  set: ReturnType<typeof vi.fn>;
   values: ReturnType<typeof vi.fn>;
   returning: ReturnType<typeof vi.fn>;
   select: ReturnType<typeof vi.fn>;
@@ -29,7 +31,9 @@ describe("WorkspaceStorage", () => {
       },
     },
     insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
     delete: vi.fn().mockReturnThis(),
+    set: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     returning: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
@@ -59,6 +63,18 @@ describe("WorkspaceStorage", () => {
     });
   });
 
+  describe("findWorkspaceById", () => {
+    it("워크스페이스 id로 조회한다", async () => {
+      const mockWorkspace = { id: 1, name: "Test Workspace" };
+      mockDb.query.workspaces.findFirst.mockResolvedValue(mockWorkspace);
+
+      const result = await storage.findWorkspaceById(1);
+
+      expect(result).toEqual(mockWorkspace);
+      expect(mockDb.query.workspaces.findFirst).toHaveBeenCalled();
+    });
+  });
+
   describe("createWorkspace", () => {
     it("새 워크스페이스를 생성하고 반환한다", async () => {
       const mockWorkspace = { id: 1, name: "New Workspace" };
@@ -80,6 +96,21 @@ describe("WorkspaceStorage", () => {
         workspaceId: 1,
         userId: 123,
         role: "ADMIN",
+      });
+    });
+  });
+
+  describe("updateWorkspaceName", () => {
+    it("워크스페이스 이름을 수정하고 반환한다", async () => {
+      const mockWorkspace = { id: 1, name: "새 이름" };
+      mockDb.returning.mockResolvedValue([mockWorkspace]);
+
+      const result = await storage.updateWorkspaceName(1, "새 이름");
+
+      expect(result).toEqual(mockWorkspace);
+      expect(mockDb.update).toHaveBeenCalledWith(workspaces);
+      expect(mockDb.set).toHaveBeenCalledWith({
+        name: "새 이름",
       });
     });
   });

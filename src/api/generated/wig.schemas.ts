@@ -169,6 +169,10 @@ export interface WorkspaceMember {
   createdAt?: string;
 }
 
+export interface WorkspaceUpdateRequest {
+  name: string;
+}
+
 export type LeadMeasurePeriod = typeof LeadMeasurePeriod[keyof typeof LeadMeasurePeriod];
 
 
@@ -512,6 +516,10 @@ export type PostWorkspacesBody = {
 
 export type PostWorkspacesJoinBody = {
   workspaceId: number;
+};
+
+export type PutWorkspacesIdBody = {
+  name: string;
 };
 
 export type PostScoreboardsIdArchive200Status = typeof PostScoreboardsIdArchive200Status[keyof typeof PostScoreboardsIdArchive200Status];

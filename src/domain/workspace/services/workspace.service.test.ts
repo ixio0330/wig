@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("WorkspaceService", () => {
   const mockStorage = {
+    findWorkspaceById: vi.fn(),
     findUserWorkspace: vi.fn(),
     createWorkspace: vi.fn(),
+    updateWorkspaceName: vi.fn(),
     addMember: vi.fn(),
     findMembershipById: vi.fn(),
     findMembership: vi.fn(),
@@ -53,6 +55,36 @@ describe("WorkspaceService", () => {
       await service.joinWorkspace(1, 123);
 
       expect(mockStorage.addMember).toHaveBeenCalledWith(1, 123, "MEMBER");
+    });
+  });
+
+  describe("updateWorkspaceName", () => {
+    it("기존 워크스페이스 이름을 수정해 반환한다", async () => {
+      const mockWorkspace = {
+        id: 1,
+        name: "기존 이름",
+        createdAt: new Date("2026-03-18T00:00:00.000Z"),
+      };
+      const updatedWorkspace = {
+        ...mockWorkspace,
+        name: "새 이름",
+      };
+
+      mockStorage.findWorkspaceById.mockResolvedValue(mockWorkspace);
+      mockStorage.updateWorkspaceName.mockResolvedValue(updatedWorkspace);
+
+      const result = await service.updateWorkspaceName(1, "새 이름");
+
+      expect(result).toEqual(updatedWorkspace);
+      expect(mockStorage.updateWorkspaceName).toHaveBeenCalledWith(1, "새 이름");
+    });
+
+    it("워크스페이스가 없으면 404 에러를 던진다", async () => {
+      mockStorage.findWorkspaceById.mockResolvedValue(null);
+
+      await expect(service.updateWorkspaceName(1, "새 이름")).rejects.toThrow(
+        "NOT_FOUND",
+      );
     });
   });
 

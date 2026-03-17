@@ -14,8 +14,10 @@ type WorkspaceMemberListItem = {
 };
 
 export interface WorkspaceStoragePort {
+  findWorkspaceById: WorkspaceStorage["findWorkspaceById"];
   findUserWorkspace: WorkspaceStorage["findUserWorkspace"];
   createWorkspace: WorkspaceStorage["createWorkspace"];
+  updateWorkspaceName: WorkspaceStorage["updateWorkspaceName"];
   addMember: WorkspaceStorage["addMember"];
   findMembershipById: WorkspaceStorage["findMembershipById"];
   findMembership: WorkspaceStorage["findMembership"];
@@ -43,6 +45,20 @@ export class WorkspaceService {
     const workspace = await this.storage.createWorkspace(name);
     await this.storage.addMember(workspace.id, userId, "ADMIN");
     return workspace;
+  }
+
+  async updateWorkspaceName(workspaceId: number, name: string): Promise<Workspace> {
+    const workspace = await this.storage.findWorkspaceById(workspaceId);
+    if (!workspace) {
+      throw new NotFoundError("NOT_FOUND");
+    }
+
+    const updatedWorkspace = await this.storage.updateWorkspaceName(workspaceId, name);
+    if (!updatedWorkspace) {
+      throw new NotFoundError("NOT_FOUND");
+    }
+
+    return updatedWorkspace;
   }
 
   async joinWorkspace(workspaceId: number, userId: number): Promise<void> {

@@ -12,6 +12,12 @@ type WorkspaceMemberWithUser = WorkspaceMember & {
 export class WorkspaceStorage {
   constructor(private db: Db) {}
 
+  async findWorkspaceById(workspaceId: number): Promise<Workspace | null> {
+    return await this.db.query.workspaces.findFirst({
+      where: eq(workspaces.id, workspaceId),
+    });
+  }
+
   async findUserWorkspace(userId: number): Promise<Workspace | null> {
     const member = await this.db.query.workspaceMembers.findFirst({
       where: eq(workspaceMembers.userId, userId),
@@ -28,6 +34,19 @@ export class WorkspaceStorage {
       .values({ name })
       .returning();
     return newWorkspace;
+  }
+
+  async updateWorkspaceName(
+    workspaceId: number,
+    name: string,
+  ): Promise<Workspace | null> {
+    const [updatedWorkspace] = await this.db
+      .update(workspaces)
+      .set({ name })
+      .where(eq(workspaces.id, workspaceId))
+      .returning();
+
+    return updatedWorkspace ?? null;
   }
 
   async addMember(
