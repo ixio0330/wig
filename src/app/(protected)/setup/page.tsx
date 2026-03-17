@@ -7,17 +7,16 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import {
   Activity,
   Archive,
-  ArrowLeft,
   Minus,
   Plus,
   Save,
   TrendingUp,
   Zap,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
@@ -74,14 +73,7 @@ export default function SetupPage() {
         {/* ── 헤더 ── */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors"
-            >
-              <Link href="/dashboard/my">
-                <ArrowLeft className="w-3.5 h-3.5" />
-              </Link>
-            </Button>
+            <SmartBackButton className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors" />
           </div>
           <p className="text-xs text-text-muted">점수판 설정</p>
           <div className="w-8" />
