@@ -5,7 +5,7 @@ import { User as UserIcon } from "lucide-react";
 import Image from "next/image";
 
 type UserAvatarProps = {
-  avatarKey?: ProfileAvatarKey | null;
+  avatarKey?: ProfileAvatarKey | string | null;
   alt: string;
   size?: number;
   className?: string;
