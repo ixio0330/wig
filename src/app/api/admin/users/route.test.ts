@@ -6,6 +6,7 @@ const mockGetDb = vi.fn();
 const mockGetSession = vi.fn();
 const mockRequireWorkspaceAdmin = vi.fn();
 const mockCreateUser = vi.fn();
+const mockAddMember = vi.fn();
 
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: mockGetCloudflareContext,
@@ -21,6 +22,12 @@ vi.mock("@/lib/server/auth", () => ({
 
 vi.mock("@/domain/auth/storage/auth.storage", () => ({
   AuthStorage: vi.fn(),
+}));
+
+vi.mock("@/domain/workspace/storage/workspace.storage", () => ({
+  WorkspaceStorage: vi.fn(() => ({
+    addMember: mockAddMember,
+  })),
 }));
 
 vi.mock("@/domain/auth/services/auth.service", () => ({
@@ -86,7 +93,10 @@ describe("POST /api/admin/users", () => {
 
   it("ADMIN이면 사용자를 생성하고 201을 반환한다", async () => {
     mockGetSession.mockResolvedValue({ userId: 1 });
-    mockRequireWorkspaceAdmin.mockResolvedValue({ role: "ADMIN" });
+    mockRequireWorkspaceAdmin.mockResolvedValue({
+      workspaceId: 7,
+      role: "ADMIN",
+    });
     mockCreateUser.mockResolvedValue({
       id: 2,
       customId: "newmember",
@@ -114,5 +124,6 @@ describe("POST /api/admin/users", () => {
       "새멤버",
       "newSecurePass1!",
     );
+    expect(mockAddMember).toHaveBeenCalledWith(7, 2, "MEMBER");
   });
 });
