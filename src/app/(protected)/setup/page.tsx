@@ -32,6 +32,7 @@ export default function SetupPage() {
     isEditMode,
     lagMeasure,
     measures,
+    monthlyTargetMax,
     removeMeasureRow,
     setActiveTooltip,
     setGoalName,
@@ -293,7 +294,7 @@ export default function SetupPage() {
                       <Input
                         type="number"
                         min="1"
-                        max={measure.period === "WEEKLY" ? 7 : 31}
+                        max={measure.period === "WEEKLY" ? 7 : monthlyTargetMax}
                         value={measure.targetValue}
                         disabled={isMutating}
                         onChange={(e) =>
@@ -307,6 +308,9 @@ export default function SetupPage() {
                       />
                       <span className="text-xs text-text-secondary font-medium whitespace-nowrap">
                         회 / {measure.period === "WEEKLY" ? "주" : "월"}
+                        {measure.period === "MONTHLY"
+                          ? ` (최대 ${monthlyTargetMax}회)`
+                          : ""}
                       </span>
                     </div>
                   </div>
