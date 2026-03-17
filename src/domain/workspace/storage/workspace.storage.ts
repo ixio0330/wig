@@ -48,6 +48,18 @@ export class WorkspaceStorage {
     });
   }
 
+  async findMembershipById(
+    workspaceId: number,
+    membershipId: number,
+  ): Promise<WorkspaceMember | null> {
+    return await this.db.query.workspaceMembers.findFirst({
+      where: and(
+        eq(workspaceMembers.workspaceId, workspaceId),
+        eq(workspaceMembers.id, membershipId),
+      ),
+    });
+  }
+
   async findMembership(
     workspaceId: number,
     userId: number,
@@ -67,5 +79,16 @@ export class WorkspaceStorage {
         user: true,
       },
     });
+  }
+
+  async removeMemberById(workspaceId: number, membershipId: number): Promise<void> {
+    await this.db
+      .delete(workspaceMembers)
+      .where(
+        and(
+          eq(workspaceMembers.workspaceId, workspaceId),
+          eq(workspaceMembers.id, membershipId),
+        ),
+      );
   }
 }

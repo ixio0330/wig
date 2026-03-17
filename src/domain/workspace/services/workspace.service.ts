@@ -1,16 +1,26 @@
-import { ConflictError, NotFoundError } from "@/lib/server/errors";
+import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/server/errors";
 import { WorkspaceStorage } from "@/domain/workspace/storage/workspace.storage";
 
 type Workspace = NonNullable<
   Awaited<ReturnType<WorkspaceStorage["findUserWorkspace"]>>
 >;
-type WorkspaceMembers = Awaited<ReturnType<WorkspaceStorage["findMembers"]>>;
+type WorkspaceMemberListItem = {
+  id: number;
+  nickname: string;
+  avatarKey: string | null;
+  role: "ADMIN" | "MEMBER";
+  isMe: boolean;
+  createdAt: Date;
+};
 
 export interface WorkspaceStoragePort {
   findUserWorkspace: WorkspaceStorage["findUserWorkspace"];
   createWorkspace: WorkspaceStorage["createWorkspace"];
   addMember: WorkspaceStorage["addMember"];
+  findMembershipById: WorkspaceStorage["findMembershipById"];
+  findMembership: WorkspaceStorage["findMembership"];
   findMembers: WorkspaceStorage["findMembers"];
+  removeMemberById: WorkspaceStorage["removeMemberById"];
 }
 
 export class WorkspaceService {
@@ -44,7 +54,48 @@ export class WorkspaceService {
     await this.storage.addMember(workspaceId, userId, "MEMBER");
   }
 
-  async getMembers(workspaceId: number): Promise<WorkspaceMembers> {
-    return await this.storage.findMembers(workspaceId);
+  async getMembers(
+    workspaceId: number,
+    currentUserId: number,
+  ): Promise<WorkspaceMemberListItem[]> {
+    const members = await this.storage.findMembers(workspaceId);
+
+    return members.map((member) => ({
+      id: member.id,
+      nickname: member.user.nickname,
+      avatarKey: member.user.avatarKey,
+      role: member.role,
+      isMe: member.userId === currentUserId,
+      createdAt: member.createdAt,
+    }));
+  }
+
+  async removeMember(
+    workspaceId: number,
+    actorUserId: number,
+    membershipId: number,
+  ): Promise<void> {
+    const targetMembership = await this.storage.findMembershipById(
+      workspaceId,
+      membershipId,
+    );
+    if (!targetMembership) {
+      throw new NotFoundError("NOT_FOUND");
+    }
+
+    if (actorUserId === targetMembership.userId) {
+      throw new ForbiddenError("FORBIDDEN");
+    }
+
+    if (targetMembership.role === "ADMIN") {
+      const members = await this.storage.findMembers(workspaceId);
+      const adminCount = members.filter((member) => member.role === "ADMIN").length;
+
+      if (adminCount <= 1) {
+        throw new ForbiddenError("CANNOT_REMOVE_LAST_ADMIN");
+      }
+    }
+
+    await this.storage.removeMemberById(workspaceId, membershipId);
   }
 }

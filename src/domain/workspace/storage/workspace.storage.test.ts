@@ -13,6 +13,7 @@ type MockDb = {
     };
   };
   insert: ReturnType<typeof vi.fn>;
+  delete: ReturnType<typeof vi.fn>;
   values: ReturnType<typeof vi.fn>;
   returning: ReturnType<typeof vi.fn>;
   select: ReturnType<typeof vi.fn>;
@@ -28,6 +29,7 @@ describe("WorkspaceStorage", () => {
       },
     },
     insert: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     returning: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
@@ -124,6 +126,30 @@ describe("WorkspaceStorage", () => {
 
       expect(result).toEqual(mockMembership);
       expect(mockDb.query.workspaceMembers.findFirst).toHaveBeenCalled();
+    });
+  });
+
+  describe("findMembershipById", () => {
+    it("특정 멤버십 id를 조회한다", async () => {
+      const mockMembership = { id: 9, workspaceId: 1, userId: 123, role: "MEMBER" };
+      mockDb.query.workspaceMembers = {
+        ...mockDb.query.workspaceMembers,
+        findFirst: vi.fn().mockResolvedValue(mockMembership),
+      };
+
+      const result = await storage.findMembershipById(1, 9);
+
+      expect(result).toEqual(mockMembership);
+      expect(mockDb.query.workspaceMembers.findFirst).toHaveBeenCalled();
+    });
+  });
+
+  describe("removeMemberById", () => {
+    it("특정 워크스페이스의 멤버를 삭제한다", async () => {
+      await storage.removeMemberById(1, 9);
+
+      expect(mockDb.delete).toHaveBeenCalledWith(workspaceMembers);
+      expect(mockDb.where).toHaveBeenCalled();
     });
   });
 });

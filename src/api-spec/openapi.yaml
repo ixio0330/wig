@@ -165,7 +165,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  id: { type: integer }
                   customId: { type: string }
                   nickname: { type: string }
         '403':
@@ -276,6 +275,36 @@ paths:
                 items: { $ref: '#/components/schemas/WorkspaceMember' }
         '403':
           description: 해당 워크스페이스 접근 권한 없음
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /workspaces/{id}/members/{memberId}:
+    delete:
+      summary: "[ADMIN] 워크스페이스 멤버 강제 퇴출"
+      tags: [Workspace]
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: memberId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: 퇴출 성공
+        '403':
+          description: 권한 없음 또는 마지막 관리자/자기 자신 퇴출 불가
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: 대상 멤버를 찾을 수 없음
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -971,10 +1000,10 @@ components:
       type: object
       properties:
         id: { type: integer }
-        workspaceId: { type: integer }
-        userId: { type: integer }
         nickname: { type: string }
+        avatarKey: { type: string, nullable: true }
         role: { type: string, enum: [ADMIN, MEMBER] }
+        isMe: { type: boolean }
         createdAt: { type: string, format: date-time }
 
     LeadMeasure:

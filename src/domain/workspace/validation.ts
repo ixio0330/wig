@@ -7,3 +7,8 @@ export const workspaceCreateSchema = z.object({
 export const workspaceJoinSchema = z.object({
   workspaceId: z.number(),
 });
+
+export const workspaceMemberParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  memberId: z.coerce.number().int().positive(),
+});

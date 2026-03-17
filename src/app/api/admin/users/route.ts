@@ -34,5 +34,11 @@ export const POST = withErrorHandler(async (request: Request) => {
     parsed.data.password,
   );
 
-  return apiSuccess(newUser, 201);
+  return apiSuccess(
+    {
+      customId: newUser.customId,
+      nickname: newUser.nickname,
+    },
+    201,
+  );
 });
