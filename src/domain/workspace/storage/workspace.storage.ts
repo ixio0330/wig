@@ -13,19 +13,21 @@ export class WorkspaceStorage {
   constructor(private db: Db) {}
 
   async findWorkspaceById(workspaceId: number): Promise<Workspace | null> {
-    return await this.db.query.workspaces.findFirst({
-      where: eq(workspaces.id, workspaceId),
-    });
+    return (
+      (await this.db.query.workspaces.findFirst({
+        where: eq(workspaces.id, workspaceId),
+      })) ?? null
+    );
   }
 
   async findUserWorkspace(userId: number): Promise<Workspace | null> {
-    const member = await this.db.query.workspaceMembers.findFirst({
+    const workspaceMember = await this.db.query.workspaceMembers.findFirst({
       where: eq(workspaceMembers.userId, userId),
       with: {
         workspace: true,
       },
     });
-    return member?.workspace || null;
+    return workspaceMember?.workspace ?? null;
   }
 
   async createWorkspace(name: string): Promise<Workspace> {
@@ -62,33 +64,39 @@ export class WorkspaceStorage {
   }
 
   async findMembershipByUserId(userId: number): Promise<WorkspaceMember | null> {
-    return await this.db.query.workspaceMembers.findFirst({
-      where: eq(workspaceMembers.userId, userId),
-    });
+    return (
+      (await this.db.query.workspaceMembers.findFirst({
+        where: eq(workspaceMembers.userId, userId),
+      })) ?? null
+    );
   }
 
   async findMembershipById(
     workspaceId: number,
     membershipId: number,
   ): Promise<WorkspaceMember | null> {
-    return await this.db.query.workspaceMembers.findFirst({
-      where: and(
-        eq(workspaceMembers.workspaceId, workspaceId),
-        eq(workspaceMembers.id, membershipId),
-      ),
-    });
+    return (
+      (await this.db.query.workspaceMembers.findFirst({
+        where: and(
+          eq(workspaceMembers.workspaceId, workspaceId),
+          eq(workspaceMembers.id, membershipId),
+        ),
+      })) ?? null
+    );
   }
 
   async findMembership(
     workspaceId: number,
     userId: number,
   ): Promise<WorkspaceMember | null> {
-    return await this.db.query.workspaceMembers.findFirst({
-      where: and(
-        eq(workspaceMembers.workspaceId, workspaceId),
-        eq(workspaceMembers.userId, userId),
-      ),
-    });
+    return (
+      (await this.db.query.workspaceMembers.findFirst({
+        where: and(
+          eq(workspaceMembers.workspaceId, workspaceId),
+          eq(workspaceMembers.userId, userId),
+        ),
+      })) ?? null
+    );
   }
 
   async findMembers(workspaceId: number): Promise<WorkspaceMemberWithUser[]> {
