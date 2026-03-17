@@ -11,6 +11,7 @@ import {
   Activity,
   Archive,
   ArrowLeft,
+  Minus,
   Plus,
   Save,
   TrendingUp,
@@ -291,26 +292,51 @@ export default function SetupPage() {
 
                     {/* 목표 횟수 */}
                     <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        max={measure.period === "WEEKLY" ? 7 : monthlyTargetMax}
-                        value={measure.targetValue}
-                        disabled={isMutating}
-                        onChange={(e) =>
-                          handleMeasureChange(
-                            measure.id,
-                            "targetValue",
-                            parseInt(e.target.value) || 1,
-                          )
-                        }
-                        className="w-14 text-center text-sm p-2 bg-white border border-border rounded-lg focus:border-primary outline-none transition-colors font-bold"
-                      />
+                      <div className="flex items-center rounded-lg border border-border bg-white">
+                        <Button
+                          type="button"
+                          disabled={
+                            isMutating || measure.targetValue <= 1
+                          }
+                          onClick={() =>
+                            handleMeasureChange(
+                              measure.id,
+                              "targetValue",
+                              measure.targetValue - 1,
+                            )
+                          }
+                          className="flex h-10 w-10 items-center justify-center rounded-l-lg text-text-secondary hover:bg-sub-background disabled:opacity-40"
+                          aria-label="횟수 감소"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <div className="flex h-10 min-w-12 items-center justify-center border-x border-border px-2 text-sm font-bold text-text-primary">
+                          {measure.targetValue}
+                        </div>
+                        <Button
+                          type="button"
+                          disabled={
+                            isMutating ||
+                            measure.targetValue >=
+                              (measure.period === "WEEKLY"
+                                ? 7
+                                : monthlyTargetMax)
+                          }
+                          onClick={() =>
+                            handleMeasureChange(
+                              measure.id,
+                              "targetValue",
+                              measure.targetValue + 1,
+                            )
+                          }
+                          className="flex h-10 w-10 items-center justify-center rounded-r-lg text-text-secondary hover:bg-sub-background disabled:opacity-40"
+                          aria-label="횟수 증가"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <span className="text-xs text-text-secondary font-medium whitespace-nowrap">
                         회 / {measure.period === "WEEKLY" ? "주" : "월"}
-                        {measure.period === "MONTHLY"
-                          ? ` (최대 ${monthlyTargetMax}회)`
-                          : ""}
                       </span>
                     </div>
                   </div>
