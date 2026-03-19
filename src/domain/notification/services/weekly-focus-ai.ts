@@ -6,8 +6,7 @@ const weeklyFocusChoiceSchema = z.object({
   selectedLeadMeasureId: z.number().int(),
 });
 
-export async function breakWeeklyFocusTie(input: {
-  apiKey: string;
+export type WeeklyFocusTieBreakInput = {
   goalName: string;
   candidates: Array<{
     id: number;
@@ -17,14 +16,34 @@ export async function breakWeeklyFocusTie(input: {
     expected: number;
     rate: number;
   }>;
-}) {
+};
+
+export type WeeklyFocusAiConfig = Readonly<{
+  apiKey: string;
+  model: "gemini-2.5-flash";
+}>;
+
+export function createWeeklyFocusAiConfig(input: {
+  apiKey: string;
+  model?: WeeklyFocusAiConfig["model"];
+}): WeeklyFocusAiConfig {
+  return Object.freeze({
+    apiKey: input.apiKey,
+    model: input.model ?? "gemini-2.5-flash",
+  });
+}
+
+export async function breakWeeklyFocusTie(
+  input: WeeklyFocusTieBreakInput,
+  config: WeeklyFocusAiConfig,
+) {
   try {
     const google = createGoogleGenerativeAI({
-      apiKey: process.env.GEMINI_API_KEY || "",
+      apiKey: config.apiKey,
     });
 
     const { object } = await generateObject({
-      model: google("gemini-2.5-flash"),
+      model: google(config.model),
       schema: weeklyFocusChoiceSchema,
       prompt: [
         `WIG goal: ${input.goalName}`,

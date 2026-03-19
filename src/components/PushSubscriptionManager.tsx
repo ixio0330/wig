@@ -1,5 +1,6 @@
 "use client";
 
+import { publicRuntimeConfig } from "@/config/public-runtime-config";
 import { useToast } from "@/context/ToastContext";
 import { Bell, BellOff } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -101,7 +102,7 @@ export default function PushSubscriptionManager({
         return;
       }
 
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      const vapidPublicKey = publicRuntimeConfig.nextPublicVapidPublicKey;
       if (!vapidPublicKey) {
         throw new Error("VAPID Public Key가 환경 변수에 설정되지 않았습니다.");
       }
@@ -142,7 +143,7 @@ export default function PushSubscriptionManager({
           "알림 서비스 설정에 문제가 발생했습니다. 관리자에게 문의해 주세요.",
         );
       } else if (
-        process.env.NODE_ENV === "development" &&
+        publicRuntimeConfig.isDevelopment &&
         error instanceof Error &&
         error.message.includes("service worker")
       ) {

@@ -1,18 +1,21 @@
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject } from "ai";
-import { google } from "@ai-sdk/google";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { breakWeeklyFocusTie } from "@/domain/notification/services/weekly-focus-ai";
+import {
+  breakWeeklyFocusTie,
+  createWeeklyFocusAiConfig,
+} from "@/domain/notification/services/weekly-focus-ai";
 
 vi.mock("ai", () => ({
   generateObject: vi.fn(),
 }));
 
 vi.mock("@ai-sdk/google", () => ({
-  google: vi.fn(),
+  createGoogleGenerativeAI: vi.fn(),
 }));
 
 const mockGenerateObject = vi.mocked(generateObject);
-const mockGoogle = vi.mocked(google);
+const mockCreateGoogleGenerativeAI = vi.mocked(createGoogleGenerativeAI);
 
 describe("breakWeeklyFocusTie", () => {
   const candidates = [
@@ -33,10 +36,11 @@ describe("breakWeeklyFocusTie", () => {
       rate: 25,
     },
   ];
+  const config = createWeeklyFocusAiConfig({ apiKey: "test-api-key" });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGoogle.mockReturnValue("mock-model" as never);
+    mockCreateGoogleGenerativeAI.mockReturnValue((() => "mock-model") as never);
   });
 
   it("returns selected id when Gemini chooses a valid candidate", async () => {
@@ -48,10 +52,9 @@ describe("breakWeeklyFocusTie", () => {
 
     await expect(
       breakWeeklyFocusTie({
-        apiKey: "test-api-key",
         goalName: "이번 주는 흔들리지 않기",
         candidates,
-      }),
+      }, config),
     ).resolves.toBe(12);
   });
 
@@ -64,10 +67,9 @@ describe("breakWeeklyFocusTie", () => {
 
     await expect(
       breakWeeklyFocusTie({
-        apiKey: "test-api-key",
         goalName: "이번 주는 흔들리지 않기",
         candidates,
-      }),
+      }, config),
     ).resolves.toBeNull();
   });
 
@@ -76,10 +78,9 @@ describe("breakWeeklyFocusTie", () => {
 
     await expect(
       breakWeeklyFocusTie({
-        apiKey: "test-api-key",
         goalName: "이번 주는 흔들리지 않기",
         candidates,
-      }),
+      }, config),
     ).resolves.toBeNull();
   });
 });
