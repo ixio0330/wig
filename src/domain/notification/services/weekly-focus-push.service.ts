@@ -111,9 +111,14 @@ export class WeeklyFocusPushService {
       };
     }
 
-    const scoreboardByUserId = new Map(
-      scoreboards.map((scoreboard) => [scoreboard.userId, scoreboard]),
-    );
+    const scoreboardsByUserId = scoreboards.reduce<
+      Map<number, (typeof scoreboards)[number][]>
+    >((map, scoreboard) => {
+      const userScoreboards = map.get(scoreboard.userId) ?? [];
+      userScoreboards.push(scoreboard);
+      map.set(scoreboard.userId, userScoreboards);
+      return map;
+    }, new Map());
     const leadMeasures =
       await this.leadMeasureStorage.findActiveLeadMeasuresByScoreboardIds(
         scoreboards.map((scoreboard) => scoreboard.id),
@@ -148,14 +153,25 @@ export class WeeklyFocusPushService {
 
     const jobs: WeeklyFocusPushJob[] = [];
 
-    for (const subscription of subscriptions) {
+    const subscriptionsByUserId = subscriptions.reduce<
+      Map<number, WeeklyFocusPushSubscription[]>
+    >((map, subscription) => {
       const userId = Number(subscription.userId);
-      const scoreboard = Number.isInteger(userId)
-        ? scoreboardByUserId.get(userId)
-        : undefined;
+      if (!Number.isInteger(userId)) {
+        return map;
+      }
+      const userSubscriptions = map.get(userId) ?? [];
+      userSubscriptions.push(subscription);
+      map.set(userId, userSubscriptions);
+      return map;
+    }, new Map());
+
+    for (const [userId, userSubscriptions] of subscriptionsByUserId) {
+      const userScoreboards = scoreboardsByUserId.get(userId) ?? [];
+      const scoreboard = userScoreboards[0];
 
       if (!scoreboard) {
-        summary.skippedNoActiveScoreboard += 1;
+        summary.skippedNoActiveScoreboard += userSubscriptions.length;
         continue;
       }
 
@@ -192,18 +208,20 @@ export class WeeklyFocusPushService {
               summary,
             });
 
-      jobs.push({
-        userId,
-        scoreboardId: scoreboard.id,
-        leadMeasureId: selectedCandidate.id,
-        endpoint: subscription.endpoint,
-        p256dh: subscription.p256dh,
-        auth: subscription.auth,
-        title: PUSH_TITLE,
-        body: `오늘은 ${selectedCandidate.name} 해볼까요?`,
-        url: "/dashboard/my",
-      });
-      summary.totalJobs += 1;
+      for (const subscription of userSubscriptions) {
+        jobs.push({
+          userId,
+          scoreboardId: scoreboard.id,
+          leadMeasureId: selectedCandidate.id,
+          endpoint: subscription.endpoint,
+          p256dh: subscription.p256dh,
+          auth: subscription.auth,
+          title: PUSH_TITLE,
+          body: `오늘은 ${selectedCandidate.name} 해볼까요?`,
+          url: "/dashboard/my",
+        });
+        summary.totalJobs += 1;
+      }
     }
 
     return { jobs, summary };

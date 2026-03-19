@@ -6,7 +6,6 @@ import { Bell, BellOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface PushSubscriptionManagerProps {
-  userId: string;
   variant?: "button" | "toggle";
 }
 
@@ -33,7 +32,6 @@ const checkiOSSupport = () => {
 };
 
 export default function PushSubscriptionManager({
-  userId,
   variant = "button",
 }: PushSubscriptionManagerProps) {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -117,7 +115,7 @@ export default function PushSubscriptionManager({
       const response = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription, userId }),
+        body: JSON.stringify({ subscription }),
       });
 
       if (!response.ok) {

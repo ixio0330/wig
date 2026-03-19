@@ -198,6 +198,12 @@ describe("WeeklyFocusPushService", () => {
         p256dh: "p256dh-1",
         auth: "auth-1",
       },
+      {
+        userId: "1",
+        endpoint: "https://push.example.com/2",
+        p256dh: "p256dh-2",
+        auth: "auth-2",
+      },
     ]);
     findActiveScoreboardsForPush.mockResolvedValue([
       {
@@ -244,11 +250,21 @@ describe("WeeklyFocusPushService", () => {
     expect(result.jobs).toEqual([
       expect.objectContaining({
         leadMeasureId: 102,
+        endpoint: "https://push.example.com/1",
+        p256dh: "p256dh-1",
+        auth: "auth-1",
+        body: "오늘은 주 3회 운동 해볼까요?",
+      }),
+      expect.objectContaining({
+        leadMeasureId: 102,
+        endpoint: "https://push.example.com/2",
+        p256dh: "p256dh-2",
+        auth: "auth-2",
         body: "오늘은 주 3회 운동 해볼까요?",
       }),
     ]);
     expect(result.summary).toMatchObject({
-      totalJobs: 1,
+      totalJobs: 2,
       aiTieBreaks: 1,
     });
     expect(breakWeeklyFocusTie).toHaveBeenCalledWith(

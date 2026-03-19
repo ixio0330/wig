@@ -13,6 +13,7 @@ declare namespace Cloudflare {
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: string;
     VAPID_PRIVATE_KEY: string;
     CRON_SECRET: string;
+    GEMINI_API_KEY: string;
     WORKER_SELF_REFERENCE: Service<
       typeof import("./.open-next/worker").default
     >;
