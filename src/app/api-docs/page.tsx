@@ -1,10 +1,10 @@
-import { publicRuntimeConfig } from "@/config/public-runtime-config";
+import { serverRuntimeConfig } from "@/config/server-runtime-config";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SwaggerDocsClient } from "./SwaggerDocsClient";
 
 export default function ApiDocsPage() {
-  if (!publicRuntimeConfig.isDevelopment) {
+  if (!serverRuntimeConfig.isDevelopment) {
     return notFound();
   }
 

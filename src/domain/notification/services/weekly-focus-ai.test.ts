@@ -16,6 +16,7 @@ vi.mock("@ai-sdk/google", () => ({
 
 const mockGenerateObject = vi.mocked(generateObject);
 const mockCreateGoogleGenerativeAI = vi.mocked(createGoogleGenerativeAI);
+const mockProvider = vi.fn();
 
 describe("breakWeeklyFocusTie", () => {
   const candidates = [
@@ -40,7 +41,8 @@ describe("breakWeeklyFocusTie", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCreateGoogleGenerativeAI.mockReturnValue((() => "mock-model") as never);
+    mockProvider.mockReturnValue("mock-model");
+    mockCreateGoogleGenerativeAI.mockReturnValue(mockProvider as never);
   });
 
   it("returns selected id when Gemini chooses a valid candidate", async () => {
@@ -56,6 +58,16 @@ describe("breakWeeklyFocusTie", () => {
         candidates,
       }, config),
     ).resolves.toBe(12);
+
+    expect(mockCreateGoogleGenerativeAI).toHaveBeenCalledWith({
+      apiKey: "test-api-key",
+    });
+    expect(mockProvider).toHaveBeenCalledWith("gemini-2.5-flash");
+    expect(mockGenerateObject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "mock-model",
+      }),
+    );
   });
 
   it("returns null when Gemini returns an id outside the candidate set", async () => {
