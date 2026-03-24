@@ -1,6 +1,6 @@
 import { getDb } from "@/db";
 import { users, workspaceInvites, workspaceMembers, workspaces } from "@/db/schema";
-import { and, eq, lt, sql } from "drizzle-orm";
+import { and, eq, gt, lt, sql } from "drizzle-orm";
 
 type Db = ReturnType<typeof getDb>;
 type Workspace = typeof workspaces.$inferSelect;
@@ -188,35 +188,49 @@ export class WorkspaceStorage {
   }): Promise<boolean> {
     const { inviteId, workspaceId, userId } = input;
 
-    return await this.db.transaction(async (tx) => {
-      const [updatedInvite] = await tx
+    const [updatedInvite] = await this.db
+      .update(workspaceInvites)
+      .set({
+        usedCount: sql`${workspaceInvites.usedCount} + 1`,
+      })
+      .where(
+        and(
+          eq(workspaceInvites.id, inviteId),
+          eq(workspaceInvites.workspaceId, workspaceId),
+          eq(workspaceInvites.status, "ACTIVE"),
+          lt(workspaceInvites.usedCount, workspaceInvites.maxUses),
+        ),
+      )
+      .returning({
+        id: workspaceInvites.id,
+      });
+
+    if (!updatedInvite) {
+      return false;
+    }
+
+    try {
+      await this.db.insert(workspaceMembers).values({
+        workspaceId,
+        userId,
+        role: "MEMBER",
+      });
+      return true;
+    } catch (error) {
+      // Restore invite usage count when member insert fails after increment.
+      await this.db
         .update(workspaceInvites)
         .set({
-          usedCount: sql`${workspaceInvites.usedCount} + 1`,
+          usedCount: sql`${workspaceInvites.usedCount} - 1`,
         })
         .where(
           and(
             eq(workspaceInvites.id, inviteId),
             eq(workspaceInvites.workspaceId, workspaceId),
-            eq(workspaceInvites.status, "ACTIVE"),
-            lt(workspaceInvites.usedCount, workspaceInvites.maxUses),
+            gt(workspaceInvites.usedCount, 0),
           ),
-        )
-        .returning({
-          id: workspaceInvites.id,
-        });
-
-      if (!updatedInvite) {
-        return false;
-      }
-
-      await tx.insert(workspaceMembers).values({
-        workspaceId,
-        userId,
-        role: "MEMBER",
-      });
-
-      return true;
-    });
+        );
+      throw error;
+    }
   }
 }
