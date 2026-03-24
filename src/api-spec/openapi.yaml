@@ -30,7 +30,7 @@ paths:
               schema:
                 {
                   type: string,
-                  example: "wig_sid=abc; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=315360000",
+                  example: "wig_sid=abc; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000",
                 }
           content:
             application/json:
@@ -40,6 +40,48 @@ paths:
                   user: { $ref: "#/components/schemas/User" }
         "401":
           description: 아이디 또는 비밀번호 불일치
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: 입력값 유효성 오류
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /auth/signup:
+    post:
+      summary: 회원가입
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customId, nickname, password]
+              properties:
+                customId: { type: string, example: john123 }
+                nickname: { type: string, example: 존 }
+                password: { type: string, format: password, example: "newSecurePass1!" }
+      responses:
+        "201":
+          description: 회원가입 성공
+          headers:
+            Set-Cookie:
+              schema:
+                {
+                  type: string,
+                  example: "wig_sid=abc; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000",
+                }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/User" }
+        "409":
+          description: 이미 사용 중인 아이디
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }

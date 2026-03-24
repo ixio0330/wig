@@ -490,6 +490,16 @@ export type PostAuthLogin200 = {
   user?: User;
 };
 
+export type PostAuthSignupBody = {
+  customId: string;
+  nickname: string;
+  password: string;
+};
+
+export type PostAuthSignup201 = {
+  user?: User;
+};
+
 export type PutAuthPasswordBody = {
   currentPassword: string;
   newPassword: string;

@@ -19,6 +19,8 @@ import type {
   ErrorResponse,
   PostAuthLogin200,
   PostAuthLoginBody,
+  PostAuthSignup201,
+  PostAuthSignupBody,
   PutAuthPassword200,
   PutAuthPasswordBody,
   UnauthorizedErrorResponse
@@ -124,6 +126,100 @@ export const usePostAuthLogin = <TError = ErrorResponse,
         TContext
       > => {
       return useMutation(getPostAuthLoginMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary 회원가입
+ */
+export type postAuthSignupResponse201 = {
+  data: PostAuthSignup201
+  status: 201
+}
+
+export type postAuthSignupResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type postAuthSignupResponse422 = {
+  data: ErrorResponse
+  status: 422
+}
+
+export type postAuthSignupResponseSuccess = (postAuthSignupResponse201) & {
+  headers: Headers;
+};
+export type postAuthSignupResponseError = (postAuthSignupResponse409 | postAuthSignupResponse422) & {
+  headers: Headers;
+};
+
+export type postAuthSignupResponse = (postAuthSignupResponseSuccess | postAuthSignupResponseError)
+
+export const getPostAuthSignupUrl = () => {
+
+
+  
+
+  return `/api/auth/signup`
+}
+
+export const postAuthSignup = async (postAuthSignupBody: PostAuthSignupBody, options?: RequestInit): Promise<postAuthSignupResponse> => {
+  
+  return customInstance<postAuthSignupResponse>(getPostAuthSignupUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      postAuthSignupBody,)
+  }
+);}
+  
+
+
+
+export const getPostAuthSignupMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postAuthSignup>>, TError,{data: PostAuthSignupBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof postAuthSignup>>, TError,{data: PostAuthSignupBody}, TContext> => {
+
+const mutationKey = ['postAuthSignup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postAuthSignup>>, {data: PostAuthSignupBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postAuthSignup(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostAuthSignupMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthSignup>>>
+    export type PostAuthSignupMutationBody = PostAuthSignupBody
+    export type PostAuthSignupMutationError = ErrorResponse
+
+    /**
+ * @summary 회원가입
+ */
+export const usePostAuthSignup = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postAuthSignup>>, TError,{data: PostAuthSignupBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postAuthSignup>>,
+        TError,
+        {data: PostAuthSignupBody},
+        TContext
+      > => {
+      return useMutation(getPostAuthSignupMutationOptions(options), queryClient);
     }
     /**
  * @summary 로그아웃
