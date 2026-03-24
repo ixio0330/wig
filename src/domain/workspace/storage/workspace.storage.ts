@@ -1,10 +1,11 @@
 import { getDb } from "@/db";
-import { users, workspaceMembers, workspaces } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { users, workspaceInvites, workspaceMembers, workspaces } from "@/db/schema";
+import { and, eq, lt, sql } from "drizzle-orm";
 
 type Db = ReturnType<typeof getDb>;
 type Workspace = typeof workspaces.$inferSelect;
 type WorkspaceMember = typeof workspaceMembers.$inferSelect;
+type WorkspaceInvite = typeof workspaceInvites.$inferSelect;
 type WorkspaceMemberWithUser = WorkspaceMember & {
   user: typeof users.$inferSelect;
 };
@@ -117,5 +118,105 @@ export class WorkspaceStorage {
           eq(workspaceMembers.id, membershipId),
         ),
       );
+  }
+
+  async createInvite(input: {
+    workspaceId: number;
+    code: string;
+    maxUses: number;
+    createdByUserId: number;
+  }): Promise<WorkspaceInvite> {
+    const [invite] = await this.db
+      .insert(workspaceInvites)
+      .values(input)
+      .returning();
+    return invite;
+  }
+
+  async findInviteByCode(code: string): Promise<WorkspaceInvite | null> {
+    return (
+      (await this.db.query.workspaceInvites.findFirst({
+        where: eq(workspaceInvites.code, code),
+      })) ?? null
+    );
+  }
+
+  async findInviteById(
+    workspaceId: number,
+    inviteId: number,
+  ): Promise<WorkspaceInvite | null> {
+    return (
+      (await this.db.query.workspaceInvites.findFirst({
+        where: and(
+          eq(workspaceInvites.workspaceId, workspaceId),
+          eq(workspaceInvites.id, inviteId),
+        ),
+      })) ?? null
+    );
+  }
+
+  async listInvites(workspaceId: number): Promise<WorkspaceInvite[]> {
+    return await this.db.query.workspaceInvites.findMany({
+      where: eq(workspaceInvites.workspaceId, workspaceId),
+      orderBy: (invites, { desc }) => [desc(invites.id)],
+    });
+  }
+
+  async updateInviteStatus(
+    workspaceId: number,
+    inviteId: number,
+    status: "ACTIVE" | "INACTIVE",
+  ): Promise<WorkspaceInvite | null> {
+    const [invite] = await this.db
+      .update(workspaceInvites)
+      .set({ status })
+      .where(
+        and(
+          eq(workspaceInvites.workspaceId, workspaceId),
+          eq(workspaceInvites.id, inviteId),
+        ),
+      )
+      .returning();
+
+    return invite ?? null;
+  }
+
+  async addMemberByInvite(input: {
+    inviteId: number;
+    workspaceId: number;
+    userId: number;
+  }): Promise<boolean> {
+    const { inviteId, workspaceId, userId } = input;
+
+    return await this.db.transaction(async (tx) => {
+      const [updatedInvite] = await tx
+        .update(workspaceInvites)
+        .set({
+          usedCount: sql`${workspaceInvites.usedCount} + 1`,
+        })
+        .where(
+          and(
+            eq(workspaceInvites.id, inviteId),
+            eq(workspaceInvites.workspaceId, workspaceId),
+            eq(workspaceInvites.status, "ACTIVE"),
+            lt(workspaceInvites.usedCount, workspaceInvites.maxUses),
+          ),
+        )
+        .returning({
+          id: workspaceInvites.id,
+        });
+
+      if (!updatedInvite) {
+        return false;
+      }
+
+      await tx.insert(workspaceMembers).values({
+        workspaceId,
+        userId,
+        role: "MEMBER",
+      });
+
+      return true;
+    });
   }
 }

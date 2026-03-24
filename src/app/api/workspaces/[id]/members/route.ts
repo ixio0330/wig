@@ -1,6 +1,7 @@
 import { getDb } from "@/db";
 import { WorkspaceService } from "@/domain/workspace/services/workspace.service";
 import { WorkspaceStorage } from "@/domain/workspace/storage/workspace.storage";
+import { workspaceParamsSchema } from "@/domain/workspace/validation";
 import { apiError, apiSuccess } from "@/lib/server/api-response";
 import { getSessionWithRefresh } from "@/lib/server/auth";
 import { requireWorkspaceAdminInWorkspace } from "@/lib/server/authz";
@@ -22,7 +23,12 @@ export const GET = withErrorHandler(
       return apiError("UNAUTHORIZED");
     }
 
-    const workspaceId = Number(id);
+    const parsedParams = workspaceParamsSchema.safeParse({ id });
+    if (!parsedParams.success) {
+      return apiError("VALIDATION_ERROR", parsedParams.error.flatten().fieldErrors);
+    }
+
+    const workspaceId = parsedParams.data.id;
     await requireWorkspaceAdminInWorkspace(db, workspaceId, session.userId);
     const members = await service.getMembers(workspaceId, session.userId);
     return apiSuccess(members);

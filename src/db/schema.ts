@@ -53,28 +53,33 @@ export const workspaces = sqliteTable("workspaces", {
 export const workspacesRelations = relations(workspaces, ({ many }) => ({
   members: many(workspaceMembers),
   scoreboards: many(scoreboards),
+  invites: many(workspaceInvites),
 }));
 
-export const workspaceMembers = sqliteTable("workspace_members", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  workspaceId: integer("workspace_id")
-    .notNull()
-    .references(() => workspaces.id, { onDelete: "cascade" }),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  role: text("role", { enum: ["ADMIN", "MEMBER"] })
-    .notNull()
-    .default("MEMBER"),
-  privacyLevel: text("privacy_level", {
-    enum: ["PUBLIC", "SUMMARY", "PRIVATE"],
-  })
-    .notNull()
-    .default("PUBLIC"),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(strftime('%s', 'now'))`),
-});
+export const workspaceMembers = sqliteTable(
+  "workspace_members",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    workspaceId: integer("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["ADMIN", "MEMBER"] })
+      .notNull()
+      .default("MEMBER"),
+    privacyLevel: text("privacy_level", {
+      enum: ["PUBLIC", "SUMMARY", "PRIVATE"],
+    })
+      .notNull()
+      .default("PUBLIC"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+  },
+  (table) => [uniqueIndex("workspace_members_user_unique").on(table.userId)],
+);
 
 export const workspaceMembersRelations = relations(workspaceMembers, ({ one }) => ({
   user: one(users, {
@@ -84,6 +89,36 @@ export const workspaceMembersRelations = relations(workspaceMembers, ({ one }) =
   workspace: one(workspaces, {
     fields: [workspaceMembers.workspaceId],
     references: [workspaces.id],
+  }),
+}));
+
+export const workspaceInvites = sqliteTable("workspace_invites", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  code: text("code").notNull().unique(),
+  maxUses: integer("max_uses").notNull(),
+  usedCount: integer("used_count").notNull().default(0),
+  status: text("status", { enum: ["ACTIVE", "INACTIVE"] })
+    .notNull()
+    .default("ACTIVE"),
+  createdByUserId: integer("created_by_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
+});
+
+export const workspaceInvitesRelations = relations(workspaceInvites, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [workspaceInvites.workspaceId],
+    references: [workspaces.id],
+  }),
+  createdByUser: one(users, {
+    fields: [workspaceInvites.createdByUserId],
+    references: [users.id],
   }),
 }));
 

@@ -169,6 +169,49 @@ export interface WorkspaceMember {
   createdAt?: string;
 }
 
+export type WorkspaceInviteStatus = typeof WorkspaceInviteStatus[keyof typeof WorkspaceInviteStatus];
+
+
+export const WorkspaceInviteStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export interface WorkspaceInvite {
+  id?: number;
+  workspaceId?: number;
+  code?: string;
+  maxUses?: number;
+  usedCount?: number;
+  status?: WorkspaceInviteStatus;
+  createdByUserId?: number;
+  createdAt?: string;
+}
+
+export interface WorkspaceInviteCreateRequest {
+  /**
+   * @minimum 1
+   * @maximum 999
+   */
+  maxUses: number;
+}
+
+export type WorkspaceInviteStatusUpdateRequestStatus = typeof WorkspaceInviteStatusUpdateRequestStatus[keyof typeof WorkspaceInviteStatusUpdateRequestStatus];
+
+
+export const WorkspaceInviteStatusUpdateRequestStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export interface WorkspaceInviteStatusUpdateRequest {
+  status: WorkspaceInviteStatusUpdateRequestStatus;
+}
+
+export interface WorkspaceJoinByInviteRequest {
+  code: string;
+}
+
 export interface WorkspaceUpdateRequest {
   name: string;
 }
@@ -526,6 +569,14 @@ export type PostWorkspacesBody = {
 
 export type PostWorkspacesJoinBody = {
   workspaceId: number;
+};
+
+export type PostWorkspacesJoin200 = {
+  message?: string;
+};
+
+export type PostWorkspacesJoinByInvite200 = {
+  message?: string;
 };
 
 export type PutWorkspacesIdBody = {
