@@ -4,6 +4,7 @@ import { useGetUsersMe } from "@/api/generated/profile/profile";
 import { MonthlyMobileCards } from "@/app/(protected)/dashboard/my/_components/MonthlyMobileCards";
 import { WeeklyMobileCards } from "@/app/(protected)/dashboard/my/_components/WeeklyMobileCards";
 import { useDashboardScoreboard } from "@/app/(protected)/dashboard/my/_hooks/useDashboardScoreboard";
+import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
 import {
   canPlayCelebration,
   fireDashboardConfetti,
@@ -969,14 +970,7 @@ function NoWorkspaceState() {
           </p>
         </div>
 
-        <Button
-          asChild
-          className="btn-linear-primary flex items-center gap-2 w-fit px-5 py-3 text-sm"
-        >
-          <Link href="/workspace/new">
-            <Plus className="w-4 h-4" />새 워크스페이스 만들기
-          </Link>
-        </Button>
+        <NoWorkspaceActions />
       </div>
     </div>
   );

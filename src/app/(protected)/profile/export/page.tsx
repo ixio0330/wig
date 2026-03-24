@@ -4,6 +4,7 @@ import { getAnalyticsExportData } from "@/api/generated/analytics/analytics";
 import { useGetUsersMe } from "@/api/generated/profile/profile";
 import { useGetScoreboardsActive } from "@/api/generated/scoreboard/scoreboard";
 import { useGetWorkspacesMe } from "@/api/generated/workspace/workspace";
+import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
 import { getTodayInKst, getWeekDates } from "@/app/(protected)/dashboard/my/_lib/week";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/Button";
@@ -339,12 +340,7 @@ function NoWorkspaceState() {
           </p>
         </div>
 
-        <Button
-          asChild
-          className="btn-linear-primary flex items-center gap-2 w-fit px-5 py-3 text-sm"
-        >
-          <Link href="/workspace/new">새 워크스페이스 만들기</Link>
-        </Button>
+        <NoWorkspaceActions />
       </div>
     </div>
   );

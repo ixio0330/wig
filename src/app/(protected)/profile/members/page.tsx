@@ -10,6 +10,7 @@ import {
   useGetWorkspacesIdMembers,
   useGetWorkspacesMe,
 } from "@/api/generated/workspace/workspace";
+import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -71,9 +72,9 @@ function NoWorkspaceState() {
               멤버 관리는 워크스페이스를 만든 뒤 사용할 수 있습니다.
             </p>
           </div>
-          <Button asChild className="btn-linear-primary w-full rounded-lg py-3 text-sm font-bold text-white">
-            <Link href="/workspace/new">워크스페이스 만들기</Link>
-          </Button>
+          <div className="flex justify-center">
+            <NoWorkspaceActions />
+          </div>
         </Card>
       </div>
     </div>
