@@ -16,6 +16,22 @@ export const loginSchema = z.object({
   password: z.string().min(1, "비밀번호를 입력해주세요."),
 });
 
+export const signupSchema = z.object({
+  customId: z
+    .string()
+    .regex(ID_REGEX, "아이디는 3~20자의 영문 대소문자 및 숫자여야 합니다."),
+  nickname: z
+    .string()
+    .min(1, "닉네임을 입력해주세요.")
+    .max(50, "닉네임은 50자 이하여야 합니다."),
+  password: z
+    .string()
+    .regex(
+      PW_REGEX,
+      "비밀번호는 8자 이상의 영문, 숫자, 허용된 특수문자 조합이어야 합니다.",
+    ),
+});
+
 export const passwordChangeSchema = z.object({
   currentPassword: z.string().min(1, "현재 비밀번호를 입력해주세요."),
   newPassword: z

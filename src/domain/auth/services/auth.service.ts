@@ -16,6 +16,28 @@ export interface AuthStoragePort {
 export class AuthService {
   constructor(private storage: AuthStoragePort) {}
 
+  async signup(customId: string, nickname: string, password: string) {
+    const user = await this.createUser(customId, nickname, password);
+
+    const sessionId = nanoid();
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+
+    await this.storage.createSession({
+      id: sessionId,
+      userId: user.id,
+      expiresAt,
+    });
+
+    return {
+      user: {
+        id: user.id,
+        nickname: user.nickname,
+        isFirstLogin: user.isFirstLogin,
+      },
+      sessionId,
+    };
+  }
+
   async login(customId: string, password: string) {
     // 1. 사용자 조회
     const user = await this.storage.findUserByCustomId(customId);

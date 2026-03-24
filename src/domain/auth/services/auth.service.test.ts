@@ -92,6 +92,44 @@ describe("Auth Service - login", () => {
   });
 });
 
+describe("Auth Service - signup", () => {
+  const mockStorage = createMockStorage();
+  const service = new AuthService(mockStorage);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("회원가입 시 사용자를 생성하고 세션을 발급한다", async () => {
+    mockStorage.findUserByCustomId.mockResolvedValue(undefined);
+    mockStorage.createUser.mockResolvedValue({
+      id: 7,
+      customId: "newuser",
+      nickname: "New User",
+      avatarKey: null,
+      passwordHash: "hashed-password",
+      isFirstLogin: true,
+      createdAt: new Date(),
+    });
+
+    const result = await service.signup("newuser", "New User", "newSecurePass1!");
+
+    expect(result.user).toEqual({
+      id: 7,
+      nickname: "New User",
+      isFirstLogin: true,
+    });
+    expect(result.sessionId).toBeDefined();
+    expect(mockStorage.createUser).toHaveBeenCalled();
+    expect(mockStorage.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 7,
+        expiresAt: expect.any(Date),
+      }),
+    );
+  });
+});
+
 describe("Auth Service - logout", () => {
   const mockStorage = createMockStorage();
   const service = new AuthService(mockStorage);
