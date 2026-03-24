@@ -78,8 +78,17 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [user, recoveryCodes]
                 properties:
                   user: { $ref: "#/components/schemas/User" }
+                  recoveryCodes:
+                    type: array
+                    description: 가입 직후 1회 노출되는 복원 코드 목록
+                    minItems: 8
+                    maxItems: 8
+                    items:
+                      type: string
+                      example: 6JYSB959TK
         "409":
           description: 이미 사용 중인 아이디
           content:
@@ -145,6 +154,86 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+
+  /auth/recovery-codes/verify:
+    post:
+      summary: 복원코드로 계정 조회
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [recoveryCode]
+              properties:
+                recoveryCode:
+                  type: string
+                  description: 대소문자/하이픈/공백 무시, 10자리 복원코드
+                  example: 6JYS-B959TK
+      responses:
+        "200":
+          description: 복원코드 검증 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user: { $ref: "#/components/schemas/RecoveryAccount" }
+        "404":
+          description: 유효하지 않은 복원코드
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: 입력값 유효성 오류
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /auth/password/by-recovery-code:
+    put:
+      summary: 복원코드로 비밀번호 재설정
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [recoveryCode, newPassword]
+              properties:
+                recoveryCode:
+                  type: string
+                  description: 대소문자/하이픈/공백 무시, 10자리 복원코드
+                  example: 6JYS-B959TK
+                newPassword:
+                  type: string
+                  format: password
+                  example: newSecurePass1!
+      responses:
+        "200":
+          description: 비밀번호 재설정 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                    example: 비밀번호가 변경되었습니다.
+        "404":
+          description: 유효하지 않은 복원코드
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: 입력값 유효성 오류
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   /users/me:
     get:
@@ -1111,6 +1200,13 @@ components:
         id: { type: integer }
         nickname: { type: string }
         isFirstLogin: { type: boolean }
+
+    RecoveryAccount:
+      type: object
+      required: [customId, nickname]
+      properties:
+        customId: { type: string }
+        nickname: { type: string }
 
     UserProfile:
       type: object

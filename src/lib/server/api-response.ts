@@ -8,6 +8,7 @@ export type ErrorCode =
   | "VALIDATION_ERROR"
   | "INTERNAL_ERROR"
   | "INVALID_CREDENTIALS"
+  | "INVALID_RECOVERY_CODE"
   | "SESSION_EXPIRED"
   | "WRONG_PASSWORD"
   | "INVALID_INVITE_CODE"
@@ -32,6 +33,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   VALIDATION_ERROR: "입력값이 올바르지 않습니다.",
   INTERNAL_ERROR: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
   INVALID_CREDENTIALS: "아이디 또는 비밀번호가 올바르지 않습니다.",
+  INVALID_RECOVERY_CODE: "유효하지 않은 복원코드입니다.",
   SESSION_EXPIRED: "세션이 만료되었습니다. 다시 로그인해주세요.",
   WRONG_PASSWORD: "현재 비밀번호가 올바르지 않습니다.",
   INVALID_INVITE_CODE: "존재하지 않는 초대 코드입니다.",
@@ -53,6 +55,7 @@ const ERROR_STATUS: Partial<Record<ErrorCode, number>> = {
   UNAUTHORIZED: 401,
   SESSION_EXPIRED: 401,
   INVALID_CREDENTIALS: 401,
+  INVALID_RECOVERY_CODE: 404,
   WRONG_PASSWORD: 400,
   FUTURE_DATE_NOT_ALLOWED: 400,
   SCOREBOARD_ALREADY_ACTIVE: 400,

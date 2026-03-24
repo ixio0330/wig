@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetCloudflareContext = vi.fn();
 const mockGetDb = vi.fn();
-const mockSignup = vi.fn();
-const mockCookieSet = vi.fn();
+const mockVerifyRecoveryCode = vi.fn();
 
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: mockGetCloudflareContext,
@@ -13,12 +12,6 @@ vi.mock("@/db", () => ({
   getDb: mockGetDb,
 }));
 
-vi.mock("next/headers", () => ({
-  cookies: vi.fn(async () => ({
-    set: mockCookieSet,
-  })),
-}));
-
 vi.mock("@/domain/auth/storage/auth.storage", () => ({
   AuthStorage: vi.fn(),
 }));
@@ -26,12 +19,12 @@ vi.mock("@/domain/auth/storage/auth.storage", () => ({
 vi.mock("@/domain/auth/services/auth.service", () => ({
   AuthService: vi.fn(function MockAuthService() {
     return {
-      signup: mockSignup,
+      verifyRecoveryCode: mockVerifyRecoveryCode,
     };
   }),
 }));
 
-describe("POST /api/auth/signup", () => {
+describe("POST /api/auth/recovery-codes/verify", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetCloudflareContext.mockReturnValue({ env: { DB: {} } });
@@ -41,12 +34,10 @@ describe("POST /api/auth/signup", () => {
   it("요청 바디가 유효하지 않으면 422를 반환한다", async () => {
     const { POST } = await import("./route");
     const response = await POST(
-      new Request("http://localhost/api/auth/signup", {
+      new Request("http://localhost/api/auth/recovery-codes/verify", {
         method: "POST",
         body: JSON.stringify({
-          customId: "ab",
-          nickname: "",
-          password: "short",
+          recoveryCode: "bad",
         }),
         headers: {
           "Content-Type": "application/json",
@@ -55,28 +46,21 @@ describe("POST /api/auth/signup", () => {
     );
 
     expect(response.status).toBe(422);
-    expect(mockSignup).not.toHaveBeenCalled();
+    expect(mockVerifyRecoveryCode).not.toHaveBeenCalled();
   });
 
-  it("회원가입 성공 시 201과 세션 쿠키를 반환한다", async () => {
-    mockSignup.mockResolvedValue({
-      user: {
-        id: 1,
-        nickname: "존",
-        isFirstLogin: true,
-      },
-      recoveryCodes: ["AAAA1111AA", "BBBB2222BB"],
-      sessionId: "session-123",
+  it("복원코드 검증에 성공하면 계정 정보를 반환한다", async () => {
+    mockVerifyRecoveryCode.mockResolvedValue({
+      customId: "john123",
+      nickname: "존",
     });
 
     const { POST } = await import("./route");
     const response = await POST(
-      new Request("http://localhost/api/auth/signup", {
+      new Request("http://localhost/api/auth/recovery-codes/verify", {
         method: "POST",
         body: JSON.stringify({
-          customId: "john123",
-          nickname: "존",
-          password: "newSecurePass1!",
+          recoveryCode: "ABCD-EFGH23",
         }),
         headers: {
           "Content-Type": "application/json",
@@ -84,16 +68,13 @@ describe("POST /api/auth/signup", () => {
       }),
     );
 
-    expect(response.status).toBe(201);
-    expect(mockSignup).toHaveBeenCalledWith("john123", "존", "newSecurePass1!");
-    expect(mockCookieSet).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(200);
+    expect(mockVerifyRecoveryCode).toHaveBeenCalledWith("ABCDEFGH23");
     await expect(response.json()).resolves.toEqual({
       user: {
-        id: 1,
+        customId: "john123",
         nickname: "존",
-        isFirstLogin: true,
       },
-      recoveryCodes: ["AAAA1111AA", "BBBB2222BB"],
     });
   });
 });

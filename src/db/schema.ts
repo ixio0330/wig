@@ -18,6 +18,26 @@ export const users = sqliteTable("users", {
 export const usersRelations = relations(users, ({ many }) => ({
   members: many(workspaceMembers),
   scoreboards: many(scoreboards),
+  recoveryCodes: many(authRecoveryCodes),
+}));
+
+export const authRecoveryCodes = sqliteTable("auth_recovery_codes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  codeHash: text("code_hash").notNull().unique(),
+  usedAt: integer("used_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
+});
+
+export const authRecoveryCodesRelations = relations(authRecoveryCodes, ({ one }) => ({
+  user: one(users, {
+    fields: [authRecoveryCodes.userId],
+    references: [users.id],
+  }),
 }));
 
 export const sessions = sqliteTable("sessions", {

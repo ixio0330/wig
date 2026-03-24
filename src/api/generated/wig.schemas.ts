@@ -11,6 +11,11 @@ export interface User {
   isFirstLogin?: boolean;
 }
 
+export interface RecoveryAccount {
+  customId: string;
+  nickname: string;
+}
+
 /**
  * @nullable
  */
@@ -540,7 +545,13 @@ export type PostAuthSignupBody = {
 };
 
 export type PostAuthSignup201 = {
-  user?: User;
+  user: User;
+  /**
+   * 가입 직후 1회 노출되는 복원 코드 목록
+   * @minItems 8
+   * @maxItems 8
+   */
+  recoveryCodes: string[];
 };
 
 export type PutAuthPasswordBody = {
@@ -550,6 +561,25 @@ export type PutAuthPasswordBody = {
 
 export type PutAuthPassword200 = {
   message?: string;
+};
+
+export type PostAuthRecoveryCodesVerifyBody = {
+  /** 대소문자/하이픈/공백 무시, 10자리 복원코드 */
+  recoveryCode: string;
+};
+
+export type PostAuthRecoveryCodesVerify200 = {
+  user: RecoveryAccount;
+};
+
+export type PutAuthPasswordByRecoveryCodeBody = {
+  /** 대소문자/하이픈/공백 무시, 10자리 복원코드 */
+  recoveryCode: string;
+  newPassword: string;
+};
+
+export type PutAuthPasswordByRecoveryCode200 = {
+  message: string;
 };
 
 export type PostAdminUsersBody = {
