@@ -1,27 +1,78 @@
 "use client";
 
+import {
+  getGetWorkspacesMeQueryKey,
+  usePostWorkspacesJoinByInvite,
+} from "@/api/generated/workspace/workspace";
+import { InlineSpinner } from "@/components/InlineSpinner";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
+import { useToast } from "@/context/ToastContext";
+import { getApiErrorMessage } from "@/lib/client/frontend-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { LogIn, Users, Zap } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { z } from "zod";
+
+const joinByInviteSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(6, "초대코드를 입력해주세요.")
+    .max(32, "초대코드는 32자 이하여야 합니다."),
+});
 
 export default function JoinWorkspacePage() {
   const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  const { mutate: joinByInvite, isPending } = usePostWorkspacesJoinByInvite({
+    mutation: {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: getGetWorkspacesMeQueryKey(),
+        });
+        showToast("success", "워크스페이스에 참가했습니다.");
+        router.push("/dashboard/my");
+      },
+      onError: (joinError) => {
+        const message = getApiErrorMessage(
+          joinError,
+          "워크스페이스 참가 중 오류가 발생했습니다.",
+        );
+        setError(message);
+        showToast("error", message);
+      },
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteCode.trim()) {
-      setError("초대코드를 입력해주세요.");
+
+    const parsed = joinByInviteSchema.safeParse({ code: inviteCode });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "초대코드를 확인해주세요.");
       return;
     }
-    setError("초대코드 참가 기능은 현재 준비 중입니다.");
+
+    setError("");
+    joinByInvite({
+      data: {
+        code: parsed.data.code.toUpperCase(),
+      },
+    });
   };
 
   return (
     <div className="min-h-screen bg-background font-pretendard flex items-center justify-center p-6">
+      {isPending && <LoadingOverlay message="워크스페이스에 참가하는 중입니다." />}
       <div className="w-full max-w-[400px] space-y-8 animate-linear-in">
         <div className="flex items-center gap-3">
           <SmartBackButton className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors shrink-0" />
@@ -50,7 +101,13 @@ export default function JoinWorkspacePage() {
             <Input
               type="text"
               value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
+              disabled={isPending}
+              onChange={(e) => {
+                setInviteCode(e.target.value);
+                if (error) {
+                  setError("");
+                }
+              }}
               placeholder="예: TEAM-AB12-CD34"
               autoFocus
               className="w-full px-4 py-3 bg-sub-background border border-border rounded-lg text-sm focus:border-primary outline-none transition-colors placeholder:text-text-muted/40"
@@ -67,6 +124,7 @@ export default function JoinWorkspacePage() {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <Button
               asChild
+              disabled={isPending}
               className="w-full rounded-lg border border-border bg-white py-3 text-sm font-bold text-text-primary hover:border-[rgba(205,207,213,1)]"
             >
               <Link href="/workspace/new" className="flex items-center justify-center gap-2">
@@ -77,15 +135,21 @@ export default function JoinWorkspacePage() {
 
             <Button
               type="submit"
-              disabled={inviteCode.trim().length === 0}
+              disabled={isPending || inviteCode.trim().length === 0}
               className={`w-full py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                inviteCode.trim().length === 0
+                isPending || inviteCode.trim().length === 0
                   ? "bg-primary/50 text-white cursor-not-allowed"
                   : "btn-linear-primary"
               }`}
             >
-              <LogIn className="w-4 h-4" />
-              참가하기
+              {isPending ? (
+                <InlineSpinner size="sm" />
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  참가하기
+                </>
+              )}
             </Button>
           </div>
         </form>
