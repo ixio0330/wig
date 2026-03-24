@@ -1,12 +1,13 @@
 "use client";
 
+import { usePostAuthLogin, usePostAuthSignup } from "@/api/generated/auth/auth";
+import { InlineSpinner } from "@/components/InlineSpinner";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { usePostAuthLogin, usePostAuthSignup } from "@/api/generated/auth/auth";
-import { InlineSpinner } from "@/components/InlineSpinner";
 import { getApiErrorMessage } from "@/lib/client/frontend-api";
-import { LogIn, UserPlus, Zap } from "lucide-react";
+import { Check, Copy, LogIn, UserPlus, Zap } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
@@ -35,6 +36,8 @@ export default function LoginPageClient() {
   const [nickname, setNickname] = useState("");
   const [pw, setPw] = useState("");
   const [error, setError] = useState("");
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
   const loginMutation = usePostAuthLogin();
   const signupMutation = usePostAuthSignup();
   const router = useRouter();
@@ -44,6 +47,41 @@ export default function LoginPageClient() {
   const resetErrorAndSwitchMode = (nextMode: AuthMode) => {
     setError("");
     setMode(nextMode);
+  };
+
+  const handleCopyRecoveryCodes = async () => {
+    if (!recoveryCodes || recoveryCodes.length === 0) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(recoveryCodes.join(", "));
+      setIsCopied(true);
+    } catch {
+      setError("복원코드 복사에 실패했습니다. 수동으로 저장해주세요.");
+    }
+  };
+
+  const handleDownloadRecoveryCodes = () => {
+    if (!recoveryCodes || recoveryCodes.length === 0) {
+      return;
+    }
+
+    const content = [
+      "WIG 복원코드",
+      "",
+      "아래 코드는 계정 복구에 사용됩니다. 안전한 곳에 보관하세요.",
+      "",
+      recoveryCodes.join(", "),
+      "",
+    ].join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "wig-recovery-codes.txt";
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,13 +112,18 @@ export default function LoginPageClient() {
           },
         });
 
-        if (response.status !== 201 || !response.data.user) {
+        if (
+          response.status !== 201 ||
+          !response.data.user ||
+          !Array.isArray(response.data.recoveryCodes) ||
+          response.data.recoveryCodes.length === 0
+        ) {
           setError("회원가입에 실패했습니다.");
           return;
         }
 
-        const nextPath = searchParams.get("next");
-        router.push(nextPath || "/dashboard/my");
+        setRecoveryCodes(response.data.recoveryCodes);
+        setIsCopied(false);
       } catch (signupError) {
         setError(getApiErrorMessage(signupError, "회원가입에 실패했습니다."));
       }
@@ -105,10 +148,89 @@ export default function LoginPageClient() {
       router.push(nextPath || "/dashboard/my");
     } catch (loginError) {
       setError(
-        getApiErrorMessage(loginError, "아이디 또는 비밀번호가 올바르지 않습니다."),
+        getApiErrorMessage(
+          loginError,
+          "아이디 또는 비밀번호가 올바르지 않습니다.",
+        ),
       );
     }
   };
+
+  if (recoveryCodes) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 font-pretendard">
+        <Card className="w-full max-w-[520px] bg-white border border-border rounded-2xl p-8 md:p-10 shadow-sm animate-linear-in">
+          <div className="space-y-2 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+              복원코드를 저장해주세요
+            </h1>
+            <p className="text-sm text-text-muted">
+              분실 시 계정 복구에 필요하며, 지금 이 화면에서만 확인할 수
+              있습니다.
+            </p>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-border bg-sub-background p-4">
+            <div className="grid grid-cols-2 gap-2">
+              {recoveryCodes.map((code) => (
+                <div
+                  key={code}
+                  className="rounded-lg border border-border bg-white px-3 py-2 text-center text-sm font-semibold tracking-wide text-text-primary"
+                >
+                  {code}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-4 p-3 bg-danger/5 border border-danger/20 rounded-xl">
+              <p className="text-danger text-[11px] font-bold text-center">
+                {error}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <Button
+              type="button"
+              onClick={handleCopyRecoveryCodes}
+              className="w-full rounded-xl py-3 text-sm font-semibold border border-border bg-white text-text-primary hover:bg-sub-background"
+            >
+              {isCopied ? (
+                <span className="inline-flex items-center gap-2">
+                  <Check className="h-4 w-4" />
+                  복사 완료
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <Copy className="h-4 w-4" />
+                  복원코드 복사
+                </span>
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDownloadRecoveryCodes}
+              className="w-full rounded-xl py-3 text-sm font-semibold border border-border bg-white text-text-primary hover:bg-sub-background"
+            >
+              txt 저장
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                const nextPath = searchParams.get("next");
+                router.push(nextPath || "/dashboard/my");
+              }}
+              className="w-full rounded-xl py-3 text-sm font-semibold btn-linear-primary text-white"
+            >
+              계속하기
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 font-pretendard">
@@ -237,6 +359,17 @@ export default function LoginPageClient() {
               </>
             )}
           </Button>
+
+          {mode === "login" && (
+            <div className="text-center">
+              <Link
+                href="/account-recovery"
+                className="text-xs font-medium text-text-muted hover:text-text-primary underline underline-offset-2"
+              >
+                아이디 혹은 비밀번호를 잃어버리셨나요?
+              </Link>
+            </div>
+          )}
         </form>
       </Card>
     </div>
