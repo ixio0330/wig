@@ -1,5 +1,6 @@
 "use client";
 
+import { useMobileViewSheet } from "@/app/(protected)/dashboard/_hooks/useMobileViewSheet";
 import {
   DashboardTeamMemo,
   TeamDashboardMember,
@@ -35,14 +36,18 @@ export function TeamMemberMemoPanel({
 }: TeamMemberMemoPanelProps) {
   const [memoDraft, setMemoDraft] = useState("");
   const [sheetDragY, setSheetDragY] = useState(0);
-  const [isMobileViewSheetVisible, setIsMobileViewSheetVisible] = useState(false);
-  const [isMobileViewSheetClosing, setIsMobileViewSheetClosing] = useState(false);
-  const [isMobileViewSheetEntering, setIsMobileViewSheetEntering] = useState(false);
   const isSubmittingMemoRef = useRef(false);
   const sheetTouchStartYRef = useRef<number | null>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const enterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const memberUserId = toNumberId(member.userId);
+  const {
+    isVisible: isMobileViewSheetVisible,
+    isClosing: isMobileViewSheetClosing,
+    isEntering: isMobileViewSheetEntering,
+    closeSheet: closeMobileViewSheet,
+  } = useMobileViewSheet({
+    isOpen: memoMode === "view",
+    onClose: onCloseMemo,
+  });
   const {
     memos,
     isLoading: isMemosLoading,
@@ -87,43 +92,6 @@ export function TeamMemberMemoPanel({
     }
   }, [memoMode]);
 
-  useEffect(() => {
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-    if (enterTimerRef.current) {
-      clearTimeout(enterTimerRef.current);
-      enterTimerRef.current = null;
-    }
-
-    if (memoMode === "view") {
-      setIsMobileViewSheetClosing(false);
-      setIsMobileViewSheetEntering(true);
-      setIsMobileViewSheetVisible(true);
-      enterTimerRef.current = setTimeout(() => {
-        setIsMobileViewSheetEntering(false);
-        enterTimerRef.current = null;
-      }, 16);
-      return;
-    }
-
-    setIsMobileViewSheetVisible(false);
-    setIsMobileViewSheetClosing(false);
-    setIsMobileViewSheetEntering(false);
-  }, [memoMode]);
-
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) {
-        clearTimeout(closeTimerRef.current);
-      }
-      if (enterTimerRef.current) {
-        clearTimeout(enterTimerRef.current);
-      }
-    };
-  }, []);
-
   const handleAddMemo = async () => {
     if (isSubmittingMemoRef.current || isCreatePending) {
       return;
@@ -155,23 +123,6 @@ export function TeamMemberMemoPanel({
     await deleteMemo(memoId);
   };
 
-  const closeMobileViewSheet = () => {
-    if (isMobileViewSheetClosing) {
-      return;
-    }
-
-    setIsMobileViewSheetClosing(true);
-    setSheetDragY(0);
-
-    closeTimerRef.current = setTimeout(() => {
-      setIsMobileViewSheetVisible(false);
-      setIsMobileViewSheetClosing(false);
-      setIsMobileViewSheetEntering(false);
-      closeTimerRef.current = null;
-      onCloseMemo?.();
-    }, 220);
-  };
-
   const handleSheetTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     sheetTouchStartYRef.current = event.touches[0]?.clientY ?? null;
   };
@@ -190,6 +141,7 @@ export function TeamMemberMemoPanel({
 
   const handleSheetTouchEnd = () => {
     if (sheetDragY > 96) {
+      setSheetDragY(0);
       closeMobileViewSheet();
       sheetTouchStartYRef.current = null;
       return;
