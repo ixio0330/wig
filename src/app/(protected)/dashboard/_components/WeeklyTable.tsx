@@ -1,10 +1,12 @@
 "use client";
 
+import { useGetDashboardTeamMemos } from "@/api/generated/dashboard/dashboard";
 import { TeamDashboardMember, TeamDashboardMemberRole } from "@/api/generated/wig.schemas";
 import { AchievementProgress } from "@/app/(protected)/dashboard/_components/AchievementProgress";
 import { TeamMemberMemoPanel } from "@/app/(protected)/dashboard/_components/TeamMemberMemoPanel";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/Button";
+import { getApiErrorStatus, toNumberId } from "@/lib/client/frontend-api";
 
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -35,6 +37,20 @@ export function WeeklyTable({
   currentUserAvatarKey,
   currentUserRole,
 }: WeeklyTableProps) {
+  const memberUserId = toNumberId(member.userId);
+  const { data: memoResponse } = useGetDashboardTeamMemos(
+    { targetUserId: memberUserId ?? 0 },
+    {
+      query: {
+        enabled: memberUserId !== null,
+        staleTime: 30 * 1000,
+        refetchOnWindowFocus: false,
+        retry: (failureCount, queryError) =>
+          getApiErrorStatus(queryError) !== 404 && failureCount < 2,
+      },
+    },
+  );
+
   if (
     !(member.hasScoreboard ?? false) ||
     (member.leadMeasures?.length ?? 0) === 0
@@ -43,6 +59,9 @@ export function WeeklyTable({
   }
 
   const today = new Date().toISOString().split("T")[0];
+  const hasMemos = (memoResponse?.status === 200
+    ? memoResponse.data.memos?.length
+    : 0) > 0;
 
   return (
     <div className="relative space-y-2 xl:pr-0">
@@ -70,17 +89,19 @@ export function WeeklyTable({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              onClick={onToggleView}
-              className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
-                memoMode === "view"
-                  ? "border-primary/25 bg-primary/10 text-primary"
-                  : "border-border bg-white text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-text-primary"
-              }`}
-            >
-              메모보기
-            </Button>
+            {hasMemos ? (
+              <Button
+                type="button"
+                onClick={onToggleView}
+                className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+                  memoMode === "view"
+                    ? "border-primary/25 bg-primary/10 text-primary"
+                    : "border-border bg-white text-text-secondary hover:border-[rgba(205,207,213,1)] hover:text-text-primary"
+                }`}
+              >
+                메모보기
+              </Button>
+            ) : null}
             <Button
               type="button"
               onClick={onToggleCompose}
