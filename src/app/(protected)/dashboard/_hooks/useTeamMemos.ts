@@ -152,7 +152,7 @@ export const useTeamMemos = ({
   };
 
   const resolveMemo = async (memoId: number, isResolved: boolean) => {
-    if (targetUserId === null || currentUser.id == null) {
+    if (targetUserId === null || currentUser.id == null || memoId <= 0) {
       return false;
     }
 
@@ -218,7 +218,7 @@ export const useTeamMemos = ({
   };
 
   const deleteMemo = async (memoId: number) => {
-    if (targetUserId === null) {
+    if (targetUserId === null || memoId <= 0) {
       return false;
     }
 
