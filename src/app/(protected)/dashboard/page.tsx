@@ -170,6 +170,7 @@ export default function DashboardPage() {
                           : null,
                     )
                   }
+                  onCloseMemo={() => setActiveMemoState(null)}
                   currentUserId={myUserId}
                   currentUserNickname={myNickname}
                   currentUserAvatarKey={myAvatarKey}
