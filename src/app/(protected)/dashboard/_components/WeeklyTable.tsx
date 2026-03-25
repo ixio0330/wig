@@ -1,22 +1,21 @@
 "use client";
 
-import { TeamDashboardMember } from "@/api/generated/wig.schemas";
+import {
+  DashboardTeamMemo,
+  TeamDashboardMember,
+  TeamDashboardMemberRole,
+} from "@/api/generated/wig.schemas";
 import { AchievementProgress } from "@/app/(protected)/dashboard/_components/AchievementProgress";
+import { useTeamMemos } from "@/app/(protected)/dashboard/_hooks/useTeamMemos";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { toNumberId } from "@/lib/client/frontend-api";
 import { ArrowUp, Check, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
-
-type MemberMemo = {
-  id: string;
-  content: string;
-  createdAt: number;
-  isResolved: boolean;
-};
 
 type WeeklyTableProps = {
   member: TeamDashboardMember;
@@ -25,8 +24,10 @@ type WeeklyTableProps = {
   memoMode?: "compose" | "view" | null;
   onToggleCompose?: () => void;
   onToggleView?: () => void;
+  currentUserId?: number | null;
   currentUserNickname?: string | null;
   currentUserAvatarKey?: string | null;
+  currentUserRole?: TeamDashboardMemberRole | null;
 };
 
 export function WeeklyTable({
@@ -36,11 +37,34 @@ export function WeeklyTable({
   memoMode = null,
   onToggleCompose,
   onToggleView,
+  currentUserId,
   currentUserNickname,
   currentUserAvatarKey,
+  currentUserRole,
 }: WeeklyTableProps) {
   const [memoDraft, setMemoDraft] = useState("");
-  const [memos, setMemos] = useState<MemberMemo[]>([]);
+  const isSubmittingMemoRef = useRef(false);
+  const memberUserId = toNumberId(member.userId);
+  const {
+    memos,
+    isLoading: isMemosLoading,
+    isFetching: isMemosFetching,
+    isError: isMemosError,
+    isCreatePending,
+    isResolvePending,
+    isDeletePending,
+    createMemo,
+    resolveMemo,
+    deleteMemo,
+  } = useTeamMemos({
+    targetUserId: memberUserId,
+    enabled: true,
+    currentUser: {
+      id: currentUserId,
+      nickname: currentUserNickname,
+      avatarKey: currentUserAvatarKey,
+    },
+  });
 
   if (
     !(member.hasScoreboard ?? false) ||
@@ -53,34 +77,33 @@ export function WeeklyTable({
   const hasMemos = memos.length > 0;
   const isComposeMode = memoMode === "compose";
   const shouldShowMemoRail = memoMode !== null;
-  const handleAddMemo = () => {
+  const handleAddMemo = async () => {
+    if (isSubmittingMemoRef.current || isCreatePending) {
+      return;
+    }
+
     const content = memoDraft.trim();
     if (!content) {
       return;
     }
 
-    setMemos((prev) => [
-      {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        content,
-        createdAt: Date.now(),
-        isResolved: false,
-      },
-      ...prev,
-    ]);
-    setMemoDraft("");
+    isSubmittingMemoRef.current = true;
+
+    try {
+      const isSuccess = await createMemo(content);
+
+      if (isSuccess) {
+        setMemoDraft("");
+      }
+    } finally {
+      isSubmittingMemoRef.current = false;
+    }
   };
-  const handleResolveMemo = (memoId: string) => {
-    setMemos((prev) =>
-      prev.map((memo) =>
-        memo.id === memoId
-          ? { ...memo, isResolved: !memo.isResolved }
-          : memo,
-      ),
-    );
+  const handleResolveMemo = async (memo: DashboardTeamMemo) => {
+    await resolveMemo(memo.id, !memo.isResolved);
   };
-  const handleDeleteMemo = (memoId: string) => {
-    setMemos((prev) => prev.filter((memo) => memo.id !== memoId));
+  const handleDeleteMemo = async (memoId: number) => {
+    await deleteMemo(memoId);
   };
 
   return (
@@ -336,16 +359,17 @@ export function WeeklyTable({
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault();
-                      handleAddMemo();
+                      void handleAddMemo();
                     }
                   }}
                   placeholder="댓글 추가"
                   className="h-8 flex-1 border-0 bg-transparent px-2 text-xs text-text-primary outline-none placeholder:text-text-muted"
+                  disabled={isCreatePending}
                 />
                 <Button
                   type="button"
-                  onClick={handleAddMemo}
-                  disabled={!memoDraft.trim()}
+                  onClick={() => void handleAddMemo()}
+                  disabled={!memoDraft.trim() || isCreatePending}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary disabled:opacity-40"
                   aria-label="메모 등록"
                 >
@@ -355,75 +379,115 @@ export function WeeklyTable({
             </Card>
           ) : null}
 
-          {memos.map((memo) => (
-            <Card
-              key={memo.id}
-              className={`rounded-xl border px-4 py-3 transition-colors ${
-                memo.isResolved
-                  ? "border-primary/20 bg-primary/5"
-                  : "border-border bg-white"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <UserAvatar
-                    avatarKey={currentUserAvatarKey}
-                    alt={`${currentUserNickname ?? "사용자"} 아바타`}
-                    size={24}
-                  />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate text-xs font-bold text-text-primary">
-                        {currentUserNickname ?? "나"}
-                      </p>
-                      <span className="text-[11px] text-text-muted">
-                        {formatRelativeTime(memo.createdAt)}
-                      </span>
+          {isMemosLoading ? (
+            <MemoStatusCard message="메모를 불러오는 중입니다." />
+          ) : isMemosError ? (
+            <MemoStatusCard message="메모를 불러오지 못했습니다." />
+          ) : hasMemos ? (
+            memos.map((memo) => {
+              const canManageMemo =
+                currentUserRole === TeamDashboardMemberRole.ADMIN ||
+                memo.author.userId === currentUserId;
+
+              return (
+                <Card
+                  key={memo.id}
+                  className={`rounded-xl border px-4 py-3 transition-colors ${
+                    memo.isResolved
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-border bg-white"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <UserAvatar
+                        avatarKey={memo.author.avatarKey}
+                        alt={`${memo.author.nickname} 아바타`}
+                        size={24}
+                        className="rounded-md"
+                        fallbackClassName="rounded-md"
+                        imageClassName="rounded-md"
+                      />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="truncate text-xs font-bold text-text-primary">
+                            {memo.author.nickname}
+                          </p>
+                          <span className="text-[11px] text-text-muted">
+                            {formatRelativeTime(memo.createdAt)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
+                    {canManageMemo ? (
+                      <div className="flex items-center overflow-hidden rounded-lg border border-border bg-white">
+                        <button
+                          type="button"
+                          onClick={() => void handleResolveMemo(memo)}
+                          disabled={isResolvePending}
+                          className={`inline-flex h-8 w-8 items-center justify-center transition-colors disabled:opacity-50 ${
+                            memo.isResolved
+                              ? "border-primary/25 bg-primary/10 text-primary"
+                              : "text-text-muted hover:bg-sub-background hover:text-text-primary"
+                          }`}
+                          aria-label="댓글 확인"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteMemo(memo.id)}
+                          disabled={isDeletePending}
+                          className="inline-flex h-8 w-8 items-center justify-center border-l border-border text-text-muted transition-colors hover:bg-sub-background hover:text-red-500 disabled:opacity-50"
+                          aria-label="댓글 삭제"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-                <div className="flex items-center overflow-hidden rounded-lg border border-border bg-white">
-                  <button
-                    type="button"
-                    onClick={() => handleResolveMemo(memo.id)}
-                    className={`inline-flex h-8 w-8 items-center justify-center transition-colors ${
+                  <p
+                    className={`mt-2 text-sm leading-6 ${
                       memo.isResolved
-                        ? "border-primary/25 bg-primary/10 text-primary"
-                        : "text-text-muted hover:bg-sub-background hover:text-text-primary"
+                        ? "text-text-secondary line-through"
+                        : "text-text-primary"
                     }`}
-                    aria-label="댓글 확인"
                   >
-                    <Check className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteMemo(memo.id)}
-                    className="inline-flex h-8 w-8 items-center justify-center border-l border-border text-text-muted transition-colors hover:bg-sub-background hover:text-red-500"
-                    aria-label="댓글 삭제"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-              <p
-                className={`mt-2 text-sm leading-6 ${
-                  memo.isResolved
-                    ? "text-text-secondary line-through"
-                    : "text-text-primary"
-                }`}
-              >
-                {memo.content}
-              </p>
-            </Card>
-          ))}
+                    {memo.content}
+                  </p>
+                </Card>
+              );
+            })
+          ) : null
+          }
+
+          {isMemosFetching && !isMemosLoading ? (
+            <p className="px-1 text-[11px] text-text-muted">
+              메모를 새로고침하는 중입니다.
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>
   );
 }
 
-function formatRelativeTime(createdAt: number) {
-  const diffMin = Math.floor((Date.now() - createdAt) / (1000 * 60));
+function MemoStatusCard({ message }: { message: string }) {
+  return (
+    <Card className="rounded-xl border border-border bg-white px-4 py-4">
+      <p className="text-sm text-text-muted">{message}</p>
+    </Card>
+  );
+}
+
+function formatRelativeTime(createdAt: string) {
+  const createdAtTime = new Date(createdAt).getTime();
+
+  if (!Number.isFinite(createdAtTime)) {
+    return "";
+  }
+
+  const diffMin = Math.floor((Date.now() - createdAtTime) / (1000 * 60));
   if (diffMin <= 0) {
     return "지금";
   }

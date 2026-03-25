@@ -42,6 +42,8 @@ export default function DashboardPage() {
   const membersWithScoreboard = members.filter(
     (member) => member.hasScoreboard,
   );
+  const currentUserRole =
+    members.find((member) => member.userId === myUserId)?.role ?? null;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background font-pretendard">
@@ -168,8 +170,10 @@ export default function DashboardPage() {
                           : null,
                     )
                   }
+                  currentUserId={myUserId}
                   currentUserNickname={myNickname}
                   currentUserAvatarKey={myAvatarKey}
+                  currentUserRole={currentUserRole}
                 />
               ))
             )}
