@@ -392,9 +392,10 @@ function MemoCard({
   onResolve,
   onDelete,
 }: MemoCardProps) {
-  const canManageMemo =
+  const canResolveMemo =
     currentUserRole === TeamDashboardMemberRole.ADMIN ||
     memo.author.userId === currentUserId;
+  const canDeleteMemo = memo.author.userId === currentUserId;
   const isOptimisticMemo = memo.id <= 0;
 
   return (
@@ -426,30 +427,36 @@ function MemoCard({
             </div>
           </div>
         </div>
-        {canManageMemo ? (
+        {canResolveMemo || canDeleteMemo ? (
           <div className="flex items-center overflow-hidden rounded-lg border border-border bg-white">
-            <button
-              type="button"
-              onClick={() => void onResolve(memo)}
-              disabled={isResolvePending || isOptimisticMemo}
-              className={`inline-flex h-8 w-8 items-center justify-center transition-colors disabled:opacity-50 ${
-                memo.isResolved
-                  ? "border-primary/25 bg-primary/10 text-primary"
-                  : "text-text-muted hover:bg-sub-background hover:text-text-primary"
-              }`}
-              aria-label="댓글 확인"
-            >
-              <Check className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => void onDelete(memo.id)}
-              disabled={isDeletePending || isOptimisticMemo}
-              className="inline-flex h-8 w-8 items-center justify-center border-l border-border text-text-muted transition-colors hover:bg-sub-background hover:text-red-500 disabled:opacity-50"
-              aria-label="댓글 삭제"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {canResolveMemo ? (
+              <button
+                type="button"
+                onClick={() => void onResolve(memo)}
+                disabled={isResolvePending || isOptimisticMemo}
+                className={`inline-flex h-8 w-8 items-center justify-center transition-colors disabled:opacity-50 ${
+                  memo.isResolved
+                    ? "border-primary/25 bg-primary/10 text-primary"
+                    : "text-text-muted hover:bg-sub-background hover:text-text-primary"
+                }`}
+                aria-label="댓글 확인"
+              >
+                <Check className="h-4 w-4" />
+              </button>
+            ) : null}
+            {canDeleteMemo ? (
+              <button
+                type="button"
+                onClick={() => void onDelete(memo.id)}
+                disabled={isDeletePending || isOptimisticMemo}
+                className={`inline-flex h-8 w-8 items-center justify-center text-text-muted transition-colors hover:bg-sub-background hover:text-red-500 disabled:opacity-50 ${
+                  canResolveMemo ? "border-l border-border" : ""
+                }`}
+                aria-label="댓글 삭제"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

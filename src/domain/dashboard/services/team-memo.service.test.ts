@@ -177,7 +177,7 @@ describe("TeamMemoService", () => {
     );
   });
 
-  it("작성자 또는 ADMIN은 메모를 삭제할 수 있다", async () => {
+  it("작성자는 메모를 삭제할 수 있다", async () => {
     findUserWorkspace.mockResolvedValue({ id: 3, name: "러닝 크루" });
     findMembership.mockResolvedValue({ userId: 11, role: "MEMBER" });
     findById.mockResolvedValue({
@@ -200,5 +200,27 @@ describe("TeamMemoService", () => {
     await service.deleteTeamMemo(11, 8);
 
     expect(deleteById).toHaveBeenCalledWith(8);
+  });
+
+  it("작성자가 아니면 ADMIN이어도 메모를 삭제할 수 없다", async () => {
+    findUserWorkspace.mockResolvedValue({ id: 3, name: "러닝 크루" });
+    findMembership.mockResolvedValue({ userId: 1, role: "ADMIN" });
+    findById.mockResolvedValue({
+      id: 8,
+      workspaceId: 3,
+      targetUserId: 12,
+      authorUserId: 11,
+      content: "삭제 테스트",
+      resolvedAt: null,
+      resolvedByUserId: null,
+      createdAt: new Date("2026-03-25T12:00:00.000Z"),
+      authorUser: {
+        id: 11,
+        nickname: "지훈",
+        avatarKey: null,
+      },
+    });
+
+    await expect(service.deleteTeamMemo(1, 8)).rejects.toThrow("FORBIDDEN");
   });
 });

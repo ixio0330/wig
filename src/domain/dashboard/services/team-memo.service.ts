@@ -100,14 +100,14 @@ export class TeamMemoService {
 
   async deleteTeamMemo(userId: number, memoId: number) {
     const workspace = await this.getWorkspaceOrThrow(userId);
-    const actorMembership = await this.requireWorkspaceMember(workspace.id, userId);
+    await this.requireWorkspaceMember(workspace.id, userId);
     const memo = await this.teamMemoStorage.findById(memoId);
 
     if (!memo || memo.workspaceId !== workspace.id) {
       throw new NotFoundError("NOT_FOUND");
     }
 
-    if (memo.authorUserId !== userId && actorMembership.role !== "ADMIN") {
+    if (memo.authorUserId !== userId) {
       throw new ForbiddenError("FORBIDDEN");
     }
 
