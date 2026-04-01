@@ -200,11 +200,7 @@ export default function ProfileExportPage() {
   return (
     <div className="min-h-screen bg-background font-pretendard">
       <div className="max-w-[680px] mx-auto p-4 md:p-8 space-y-6 animate-linear-in">
-        <header className="flex items-center justify-between">
-          <SmartBackButton className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors" />
-          <p className="text-xs text-text-muted">데이터 내보내기</p>
-          <div className="w-8" />
-        </header>
+        <ProfileExportHeader />
 
         <Card className="border border-border rounded-lg px-6 py-5 flex items-center gap-4">
           <UserAvatar
@@ -316,6 +312,16 @@ export default function ProfileExportPage() {
   );
 }
 
+function ProfileExportHeader() {
+  return (
+    <header className="flex items-center justify-between">
+      <SmartBackButton className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors" />
+      <p className="text-xs text-text-muted">데이터 내보내기</p>
+      <div className="w-8" />
+    </header>
+  );
+}
+
 function ExportSkeleton() {
   return (
     <div className="min-h-screen bg-background font-pretendard">
@@ -332,12 +338,7 @@ function NoWorkspaceState() {
   return (
     <div className="min-h-screen bg-background font-pretendard">
       <div className="max-w-[680px] mx-auto p-4 md:p-8 space-y-10 animate-linear-in">
-        <header className="flex items-center justify-between">
-          <SmartBackButton className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors" />
-          <p className="text-xs text-text-muted">데이터 내보내기</p>
-          <div className="w-8" />
-        </header>
-
+        <ProfileExportHeader />
         <EmptyStatePanel
           title="소속된 워크스페이스가 없어요"
           description={
@@ -358,12 +359,7 @@ function NoScoreboardState() {
   return (
     <div className="min-h-screen bg-background font-pretendard">
       <div className="max-w-[680px] mx-auto p-4 md:p-8 space-y-10 animate-linear-in">
-        <header className="flex items-center justify-between">
-          <SmartBackButton className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text-muted hover:border-[rgba(205,207,213,1)] hover:text-text-primary transition-colors" />
-          <p className="text-xs text-text-muted">데이터 내보내기</p>
-          <div className="w-8" />
-        </header>
-
+        <ProfileExportHeader />
         <EmptyStatePanel
           title="아직 가중목이 없어요"
           description={

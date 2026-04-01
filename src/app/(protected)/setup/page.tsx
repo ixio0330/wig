@@ -111,20 +111,6 @@ const SETUP_COACHMARK_STYLES: Partial<Styles> = {
   },
 };
 
-function SetupSkeleton() {
-  return (
-    <div className="min-h-screen bg-background font-pretendard">
-      <div className="max-w-[580px] mx-auto p-4 md:p-8 space-y-6 animate-pulse">
-        <div className="h-10 rounded-xl bg-sub-background" />
-        <div className="h-12 rounded-xl bg-sub-background" />
-        <div className="h-44 rounded-2xl bg-sub-background" />
-        <div className="h-44 rounded-2xl bg-sub-background" />
-        <div className="h-64 rounded-2xl bg-sub-background" />
-      </div>
-    </div>
-  );
-}
-
 export default function SetupPage() {
   const router = useRouter();
   const [isCoachmarkRunning, setIsCoachmarkRunning] = useState(false);
@@ -556,6 +542,20 @@ export default function SetupPage() {
             </div>
           )}
         </form>
+      </div>
+    </div>
+  );
+}
+
+function SetupSkeleton() {
+  return (
+    <div className="min-h-screen bg-background font-pretendard">
+      <div className="max-w-[580px] mx-auto p-4 md:p-8 space-y-6 animate-pulse">
+        <div className="h-10 rounded-xl bg-sub-background" />
+        <div className="h-12 rounded-xl bg-sub-background" />
+        <div className="h-44 rounded-2xl bg-sub-background" />
+        <div className="h-44 rounded-2xl bg-sub-background" />
+        <div className="h-64 rounded-2xl bg-sub-background" />
       </div>
     </div>
   );

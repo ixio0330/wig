@@ -33,73 +33,6 @@ const createInviteSchema = z.object({
     .max(999, "사용 횟수는 999 이하여야 합니다."),
 });
 
-function InvitePageSkeleton() {
-  return (
-    <div className="min-h-screen bg-background font-pretendard">
-      <div className="mx-auto max-w-[720px] animate-pulse space-y-6 p-4 md:p-8">
-        <div className="h-10 rounded-xl bg-sub-background" />
-        <div className="h-24 rounded-2xl bg-sub-background" />
-        <div className="h-44 rounded-2xl bg-sub-background" />
-        <div className="h-72 rounded-2xl bg-sub-background" />
-      </div>
-    </div>
-  );
-}
-
-function NoWorkspaceState() {
-  return (
-    <div className="min-h-screen bg-background font-pretendard">
-      <div className="mx-auto flex min-h-screen max-w-[560px] items-center p-4 md:p-8">
-        <Card className="w-full space-y-4 rounded-lg border border-border p-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Users className="h-5 w-5" />
-          </div>
-          <div className="space-y-1">
-            <h1 className="text-lg font-bold text-text-primary">
-              워크스페이스가 없어요
-            </h1>
-            <p className="text-sm text-text-muted">
-              초대코드 관리는 워크스페이스를 만든 뒤 사용할 수 있습니다.
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <NoWorkspaceActions />
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function NoAccessState() {
-  return (
-    <div className="min-h-screen bg-background font-pretendard">
-      <div className="mx-auto flex min-h-screen max-w-[560px] items-center p-4 md:p-8">
-        <Card className="w-full space-y-4 rounded-lg border border-border p-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Shield className="h-5 w-5" />
-          </div>
-          <div className="space-y-1">
-            <h1 className="text-lg font-bold text-text-primary">
-              관리자만 접근할 수 있어요
-            </h1>
-            <p className="text-sm text-text-muted">
-              초대코드 생성/상태 변경은 현재 워크스페이스의 관리자만 할 수
-              있습니다.
-            </p>
-          </div>
-          <Button
-            asChild
-            className="w-full rounded-lg border border-border bg-white py-3 text-sm font-semibold text-text-primary"
-          >
-            <Link href="/profile">설정으로 돌아가기</Link>
-          </Button>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
 export default function ProfileInvitesPage() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -472,6 +405,73 @@ export default function ProfileInvitesPage() {
               })
             )}
           </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function InvitePageSkeleton() {
+  return (
+    <div className="min-h-screen bg-background font-pretendard">
+      <div className="mx-auto max-w-[720px] animate-pulse space-y-6 p-4 md:p-8">
+        <div className="h-10 rounded-xl bg-sub-background" />
+        <div className="h-24 rounded-2xl bg-sub-background" />
+        <div className="h-44 rounded-2xl bg-sub-background" />
+        <div className="h-72 rounded-2xl bg-sub-background" />
+      </div>
+    </div>
+  );
+}
+
+function NoWorkspaceState() {
+  return (
+    <div className="min-h-screen bg-background font-pretendard">
+      <div className="mx-auto flex min-h-screen max-w-[560px] items-center p-4 md:p-8">
+        <Card className="w-full space-y-4 rounded-lg border border-border p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Users className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-lg font-bold text-text-primary">
+              워크스페이스가 없어요
+            </h1>
+            <p className="text-sm text-text-muted">
+              초대코드 관리는 워크스페이스를 만든 뒤 사용할 수 있습니다.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <NoWorkspaceActions />
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function NoAccessState() {
+  return (
+    <div className="min-h-screen bg-background font-pretendard">
+      <div className="mx-auto flex min-h-screen max-w-[560px] items-center p-4 md:p-8">
+        <Card className="w-full space-y-4 rounded-lg border border-border p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Shield className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-lg font-bold text-text-primary">
+              관리자만 접근할 수 있어요
+            </h1>
+            <p className="text-sm text-text-muted">
+              초대코드 생성/상태 변경은 현재 워크스페이스의 관리자만 할 수
+              있습니다.
+            </p>
+          </div>
+          <Button
+            asChild
+            className="w-full rounded-lg border border-border bg-white py-3 text-sm font-semibold text-text-primary"
+          >
+            <Link href="/profile">설정으로 돌아가기</Link>
+          </Button>
         </Card>
       </div>
     </div>

@@ -16,28 +16,29 @@ import { useToast } from "@/context/ToastContext";
 import { PROFILE_AVATAR_KEYS } from "@/domain/profile/avatar-options";
 import { getApiErrorMessage } from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-
-function AvatarPageSkeleton() {
-  return (
-    <div className="min-h-screen bg-background font-pretendard">
-      <div className="mx-auto max-w-[560px] animate-pulse space-y-6 p-4 md:p-8">
-        <div className="h-10 rounded-xl bg-sub-background" />
-        <div className="h-24 rounded-2xl bg-sub-background" />
-        <div className="h-72 rounded-2xl bg-sub-background" />
-      </div>
-    </div>
-  );
-}
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function ProfileAvatarPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { showToast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const hasHandledMissingUserRef = useRef(false);
   const { data: profileResponse, isLoading } = useGetUsersMe();
   const updateProfileMutation = usePutUsersMe();
 
   const user = profileResponse?.status === 200 ? profileResponse.data : null;
+
+  useEffect(() => {
+    if (isLoading || user || hasHandledMissingUserRef.current) {
+      return;
+    }
+
+    hasHandledMissingUserRef.current = true;
+    showToast("error", "프로필 정보를 불러오지 못해 홈으로 이동합니다.");
+    router.replace("/dashboard/my");
+  }, [isLoading, router, showToast, user]);
 
   if (isLoading) {
     return <AvatarPageSkeleton />;
@@ -174,6 +175,18 @@ export default function ProfileAvatarPage() {
             ))}
           </div>
         </Card>
+      </div>
+    </div>
+  );
+}
+
+function AvatarPageSkeleton() {
+  return (
+    <div className="min-h-screen bg-background font-pretendard">
+      <div className="mx-auto max-w-[560px] animate-pulse space-y-6 p-4 md:p-8">
+        <div className="h-10 rounded-xl bg-sub-background" />
+        <div className="h-24 rounded-2xl bg-sub-background" />
+        <div className="h-72 rounded-2xl bg-sub-background" />
       </div>
     </div>
   );
