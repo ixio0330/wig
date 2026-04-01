@@ -1,44 +1,16 @@
 "use client";
 
-import { getGetDashboardTeamQueryKey } from "@/api/generated/dashboard/dashboard";
 import type { UserProfileUpdateRequest } from "@/api/generated/wig.schemas";
-import {
-  getGetUsersMeQueryKey,
-  useGetUsersMe,
-  usePutUsersMe,
-} from "@/api/generated/profile/profile";
+import { useProfileAvatar } from "@/app/(protected)/profile/avatar/_hooks/useProfileAvatar";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
-import { useToast } from "@/context/ToastContext";
 import { PROFILE_AVATAR_KEYS } from "@/domain/profile/avatar-options";
-import { getApiErrorMessage } from "@/lib/client/frontend-api";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 
 export default function ProfileAvatarPage() {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-  const { showToast } = useToast();
-  const [isSaving, setIsSaving] = useState(false);
-  const hasHandledMissingUserRef = useRef(false);
-  const { data: profileResponse, isLoading } = useGetUsersMe();
-  const updateProfileMutation = usePutUsersMe();
-
-  const user = profileResponse?.status === 200 ? profileResponse.data : null;
-
-  useEffect(() => {
-    if (isLoading || user || hasHandledMissingUserRef.current) {
-      return;
-    }
-
-    hasHandledMissingUserRef.current = true;
-    showToast("error", "프로필 정보를 불러오지 못해 홈으로 이동합니다.");
-    router.replace("/dashboard/my");
-  }, [isLoading, router, showToast, user]);
+  const { isLoading, isSaving, user, updateAvatar } = useProfileAvatar();
 
   if (isLoading) {
     return <AvatarPageSkeleton />;
@@ -51,46 +23,10 @@ export default function ProfileAvatarPage() {
   const nickname = user.nickname ?? "사용자";
   const avatarKey = user.avatarKey ?? null;
 
-  const handleAvatarSelect = async (
+  const handleAvatarSelect = (
     nextAvatarKey: UserProfileUpdateRequest["avatarKey"],
   ) => {
-    if (avatarKey === nextAvatarKey) {
-      return;
-    }
-
-    if (!confirm("프로필 아이콘을 변경할까요?")) {
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      const response = await updateProfileMutation.mutateAsync({
-        data: {
-          avatarKey: nextAvatarKey,
-        },
-      });
-
-      if (response.status !== 200) {
-        throw response;
-      }
-
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: getGetUsersMeQueryKey(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: getGetDashboardTeamQueryKey(undefined),
-        }),
-      ]);
-      showToast("success", "프로필 아이콘이 변경되었습니다.");
-    } catch (error) {
-      showToast(
-        "error",
-        getApiErrorMessage(error, "프로필 아이콘 변경에 실패했습니다."),
-      );
-    } finally {
-      setIsSaving(false);
-    }
+    return updateAvatar(avatarKey, nextAvatarKey);
   };
 
   return (
