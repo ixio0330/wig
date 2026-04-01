@@ -1,36 +1,22 @@
 "use client";
 
-import { getGetDashboardTeamQueryKey } from "@/api/generated/dashboard/dashboard";
 import { useGetUsersMe } from "@/api/generated/profile/profile";
 import {
-  getGetWorkspacesIdMembersQueryKey,
-  getGetWorkspacesMeQueryKey,
-  useDeleteWorkspacesIdMembersMemberId,
   useGetWorkspacesIdMembers,
   useGetWorkspacesMe,
 } from "@/api/generated/workspace/workspace";
 import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
 import { MemberListItem } from "@/app/(protected)/profile/members/_components/MemberListItem";
+import { useRemoveWorkspaceMember } from "@/app/(protected)/profile/members/_hooks/useRemoveWorkspaceMember";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
-import { useToast } from "@/context/ToastContext";
-import {
-  getApiErrorMessage,
-  getApiErrorStatus,
-} from "@/lib/client/frontend-api";
-import { useQueryClient } from "@tanstack/react-query";
+import { getApiErrorStatus } from "@/lib/client/frontend-api";
 import { Shield, Ticket, Users } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export default function ProfileMembersPage() {
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const [pendingDeleteMemberId, setPendingDeleteMemberId] = useState<
-    number | null
-  >(null);
-
   const { data: profileResponse, isLoading: isProfileLoading } =
     useGetUsersMe();
   const {
@@ -58,7 +44,9 @@ export default function ProfileMembersPage() {
       },
     });
 
-  const deleteMemberMutation = useDeleteWorkspacesIdMembersMemberId();
+  const { pendingDeleteMemberId, removeMember } = useRemoveWorkspaceMember({
+    workspaceId,
+  });
 
   const members = useMemo(() => {
     if (membersResponse?.status !== 200) {
@@ -79,48 +67,6 @@ export default function ProfileMembersPage() {
     isProfileLoading ||
     isWorkspaceLoading ||
     (isWorkspaceAdmin && isMembersLoading);
-
-  const invalidateMemberQueries = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: getGetWorkspacesMeQueryKey(),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: getGetWorkspacesIdMembersQueryKey(workspaceId),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: getGetDashboardTeamQueryKey(undefined),
-      }),
-    ]);
-  };
-
-  const handleRemoveMember = async (memberId: number, nickname: string) => {
-    if (!confirm(`${nickname} 님을 워크스페이스에서 퇴출할까요?`)) {
-      return;
-    }
-
-    try {
-      setPendingDeleteMemberId(memberId);
-      const response = await deleteMemberMutation.mutateAsync({
-        id: workspaceId,
-        memberId,
-      });
-
-      if (response.status !== 204) {
-        throw response;
-      }
-
-      await invalidateMemberQueries();
-      showToast("success", "멤버를 퇴출했습니다.");
-    } catch (error) {
-      showToast(
-        "error",
-        getApiErrorMessage(error, "멤버 퇴출에 실패했습니다."),
-      );
-    } finally {
-      setPendingDeleteMemberId(null);
-    }
-  };
 
   if (isLoading) {
     return <MembersPageSkeleton />;
@@ -203,7 +149,7 @@ export default function ProfileMembersPage() {
                     totalCount={members.length}
                     isPendingDelete={pendingDeleteMemberId === (member.id ?? 0)}
                     onRemove={(memberId, memberNickname) => {
-                      void handleRemoveMember(memberId, memberNickname);
+                      void removeMember(memberId, memberNickname);
                     }}
                   />
                 );
