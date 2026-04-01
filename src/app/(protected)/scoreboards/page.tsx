@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
+import { toNumberId } from "@/lib/client/frontend-api";
 import {
   Archive,
   Plus,
@@ -169,7 +170,7 @@ export default function ScoreboardsPage() {
           ) : (
             <div className="space-y-3">
               {archivedScoreboards.map((scoreboard) => {
-                const scoreboardId = toNumber(scoreboard.id);
+                const scoreboardId = toNumberId(scoreboard.id);
 
                 return (
                   <ScoreboardCard
@@ -214,9 +215,6 @@ export default function ScoreboardsPage() {
     </div>
   );
 }
-
-const toNumber = (value: number | undefined) =>
-  typeof value === "number" && Number.isFinite(value) ? value : null;
 
 function ScoreboardsSkeleton() {
   return (
