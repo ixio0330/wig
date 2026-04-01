@@ -15,7 +15,10 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { useToast } from "@/context/ToastContext";
-import { getApiErrorMessage, getApiErrorStatus } from "@/lib/client/frontend-api";
+import {
+  getApiErrorMessage,
+  getApiErrorStatus,
+} from "@/lib/client/frontend-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Shield, Ticket, Users } from "lucide-react";
 import Link from "next/link";
@@ -81,10 +84,14 @@ function NoAccessState() {
               관리자만 접근할 수 있어요
             </h1>
             <p className="text-sm text-text-muted">
-              초대코드 생성/상태 변경은 현재 워크스페이스의 관리자만 할 수 있습니다.
+              초대코드 생성/상태 변경은 현재 워크스페이스의 관리자만 할 수
+              있습니다.
             </p>
           </div>
-          <Button asChild className="w-full rounded-lg border border-border bg-white py-3 text-sm font-semibold text-text-primary">
+          <Button
+            asChild
+            className="w-full rounded-lg border border-border bg-white py-3 text-sm font-semibold text-text-primary"
+          >
             <Link href="/profile">설정으로 돌아가기</Link>
           </Button>
         </Card>
@@ -99,9 +106,12 @@ export default function ProfileInvitesPage() {
   const [maxUsesInput, setMaxUsesInput] = useState("3");
   const [formError, setFormError] = useState("");
   const [copiedInviteId, setCopiedInviteId] = useState<number | null>(null);
-  const [pendingToggleInviteId, setPendingToggleInviteId] = useState<number | null>(null);
+  const [pendingToggleInviteId, setPendingToggleInviteId] = useState<
+    number | null
+  >(null);
 
-  const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersMe();
+  const { data: profileResponse, isLoading: isProfileLoading } =
+    useGetUsersMe();
   const {
     data: workspaceResponse,
     isLoading: isWorkspaceLoading,
@@ -114,29 +124,31 @@ export default function ProfileInvitesPage() {
   });
 
   const user = profileResponse?.status === 200 ? profileResponse.data : null;
-  const workspace = workspaceResponse?.status === 200 ? workspaceResponse.data : null;
+  const workspace =
+    workspaceResponse?.status === 200 ? workspaceResponse.data : null;
   const workspaceId = workspace?.id ?? 0;
   const isWorkspaceAdmin = user?.role === "ADMIN";
 
-  const {
-    data: invitesResponse,
-    isLoading: isInvitesLoading,
-  } = useGetWorkspacesIdInvites(workspaceId, {
-    query: {
-      enabled: workspaceId > 0 && isWorkspaceAdmin,
-      retry: false,
-    },
-  });
+  const { data: invitesResponse, isLoading: isInvitesLoading } =
+    useGetWorkspacesIdInvites(workspaceId, {
+      query: {
+        enabled: workspaceId > 0 && isWorkspaceAdmin,
+        retry: false,
+      },
+    });
 
   const createInviteMutation = usePostWorkspacesIdInvites();
-  const updateInviteStatusMutation = usePatchWorkspacesIdInvitesInviteIdStatus();
+  const updateInviteStatusMutation =
+    usePatchWorkspacesIdInvitesInviteIdStatus();
 
   const invites = useMemo(() => {
     if (invitesResponse?.status !== 200) {
       return [];
     }
 
-    return [...invitesResponse.data].sort((left, right) => (right.id ?? 0) - (left.id ?? 0));
+    return [...invitesResponse.data].sort(
+      (left, right) => (right.id ?? 0) - (left.id ?? 0),
+    );
   }, [invitesResponse]);
 
   const hasNoWorkspace = getApiErrorStatus(workspaceError) === 404;
@@ -145,7 +157,9 @@ export default function ProfileInvitesPage() {
     isWorkspaceLoading ||
     (isWorkspaceAdmin && isInvitesLoading);
 
-  const activeInviteCount = invites.filter((invite) => invite.status === "ACTIVE").length;
+  const activeInviteCount = invites.filter(
+    (invite) => invite.status === "ACTIVE",
+  ).length;
 
   const invalidateInviteQueries = async () => {
     await queryClient.invalidateQueries({
@@ -154,7 +168,9 @@ export default function ProfileInvitesPage() {
   };
 
   const handleCreateInvite = async () => {
-    const parsed = createInviteSchema.safeParse({ maxUses: Number(maxUsesInput) });
+    const parsed = createInviteSchema.safeParse({
+      maxUses: Number(maxUsesInput),
+    });
 
     if (!parsed.success) {
       setFormError(parsed.error.issues[0]?.message ?? "입력값을 확인해주세요.");
@@ -270,7 +286,9 @@ export default function ProfileInvitesPage() {
 
         <Card className="space-y-4 rounded-lg border border-border p-4">
           <div className="space-y-1">
-            <h2 className="text-sm font-bold text-text-primary">새 초대코드 만들기</h2>
+            <h2 className="text-sm font-bold text-text-primary">
+              새 초대코드 만들기
+            </h2>
             <p className="text-[11px] text-text-muted">
               멤버가 사용할 수 있는 최대 횟수를 정하고 초대코드를 발급합니다.
             </p>
@@ -278,8 +296,12 @@ export default function ProfileInvitesPage() {
 
           <div className="space-y-3 rounded-lg border border-border bg-white p-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-bold text-text-secondary">최대 사용 횟수</p>
-              <p className="text-[11px] text-text-muted">최대 999개까지 설정 가능</p>
+              <p className="text-[11px] font-bold text-text-secondary">
+                최대 사용 횟수
+              </p>
+              <p className="text-[11px] text-text-muted">
+                최대 999개까지 설정 가능
+              </p>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
@@ -313,7 +335,9 @@ export default function ProfileInvitesPage() {
                     : "btn-linear-primary"
                 }`}
               >
-                {createInviteMutation.isPending ? "생성 중..." : "초대코드 생성"}
+                {createInviteMutation.isPending
+                  ? "생성 중..."
+                  : "초대코드 생성"}
               </Button>
             </div>
 
@@ -339,13 +363,17 @@ export default function ProfileInvitesPage() {
               ))}
             </div>
 
-            {formError ? <p className="text-[11px] text-danger">{formError}</p> : null}
+            {formError ? (
+              <p className="text-[11px] text-danger">{formError}</p>
+            ) : null}
           </div>
         </Card>
 
         <Card className="space-y-4 rounded-lg border border-border p-4">
           <div className="space-y-1">
-            <h2 className="text-sm font-bold text-text-primary">초대코드 목록</h2>
+            <h2 className="text-sm font-bold text-text-primary">
+              초대코드 목록
+            </h2>
             <p className="text-[11px] text-text-muted">
               코드 복사와 활성/비활성 상태를 관리할 수 있습니다.
             </p>
@@ -391,7 +419,9 @@ export default function ProfileInvitesPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <Button
                           type="button"
-                          onClick={() => void handleCopyInviteCode(inviteId, code)}
+                          onClick={() =>
+                            void handleCopyInviteCode(inviteId, code)
+                          }
                           className="h-8 rounded-lg border border-border bg-white px-2.5 text-[11px] font-bold text-text-primary"
                         >
                           {isCopied ? (
@@ -409,9 +439,7 @@ export default function ProfileInvitesPage() {
                           type="button"
                           disabled={inviteId <= 0 || isPendingToggle}
                           aria-label={
-                            isActive
-                              ? "초대코드 비활성화"
-                              : "초대코드 활성화"
+                            isActive ? "초대코드 비활성화" : "초대코드 활성화"
                           }
                           onClick={() =>
                             void handleToggleInviteStatus(
