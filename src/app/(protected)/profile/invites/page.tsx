@@ -2,47 +2,23 @@
 
 import { useGetUsersMe } from "@/api/generated/profile/profile";
 import {
-  getGetWorkspacesIdInvitesQueryKey,
   useGetWorkspacesIdInvites,
   useGetWorkspacesMe,
-  usePatchWorkspacesIdInvitesInviteIdStatus,
-  usePostWorkspacesIdInvites,
 } from "@/api/generated/workspace/workspace";
 import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
+import { useInviteActions } from "@/app/(protected)/profile/invites/_hooks/useInviteActions";
+import { useInviteForm } from "@/app/(protected)/profile/invites/_hooks/useInviteForm";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
-import { useToast } from "@/context/ToastContext";
-import {
-  getApiErrorMessage,
-  getApiErrorStatus,
-} from "@/lib/client/frontend-api";
-import { useQueryClient } from "@tanstack/react-query";
+import { getApiErrorStatus } from "@/lib/client/frontend-api";
 import { Check, Copy, Shield, Ticket, Users } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { z } from "zod";
-
-const createInviteSchema = z.object({
-  maxUses: z
-    .number()
-    .int("사용 횟수는 정수여야 합니다.")
-    .min(1, "사용 횟수는 1 이상이어야 합니다.")
-    .max(999, "사용 횟수는 999 이하여야 합니다."),
-});
+import { useMemo } from "react";
 
 export default function ProfileInvitesPage() {
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const [maxUsesInput, setMaxUsesInput] = useState("3");
-  const [formError, setFormError] = useState("");
-  const [copiedInviteId, setCopiedInviteId] = useState<number | null>(null);
-  const [pendingToggleInviteId, setPendingToggleInviteId] = useState<
-    number | null
-  >(null);
-
   const { data: profileResponse, isLoading: isProfileLoading } =
     useGetUsersMe();
   const {
@@ -70,10 +46,6 @@ export default function ProfileInvitesPage() {
       },
     });
 
-  const createInviteMutation = usePostWorkspacesIdInvites();
-  const updateInviteStatusMutation =
-    usePatchWorkspacesIdInvitesInviteIdStatus();
-
   const invites = useMemo(() => {
     if (invitesResponse?.status !== 200) {
       return [];
@@ -89,97 +61,35 @@ export default function ProfileInvitesPage() {
     isProfileLoading ||
     isWorkspaceLoading ||
     (isWorkspaceAdmin && isInvitesLoading);
+  const {
+    formError,
+    maxUsesInput,
+    getValidatedMaxUses,
+    handleMaxUsesInputChange,
+    selectPresetMaxUses,
+  } = useInviteForm();
+  const {
+    copiedInviteId,
+    createInvite,
+    copyInviteCode,
+    isCreatingInvite,
+    pendingToggleInviteId,
+    toggleInviteStatus,
+  } = useInviteActions({
+    workspaceId,
+  });
 
   const activeInviteCount = invites.filter(
     (invite) => invite.status === "ACTIVE",
   ).length;
 
-  const invalidateInviteQueries = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: getGetWorkspacesIdInvitesQueryKey(workspaceId),
-    });
-  };
-
   const handleCreateInvite = async () => {
-    const parsed = createInviteSchema.safeParse({
-      maxUses: Number(maxUsesInput),
-    });
-
-    if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? "입력값을 확인해주세요.");
+    const maxUses = getValidatedMaxUses();
+    if (maxUses === null) {
       return;
     }
 
-    try {
-      setFormError("");
-      const response = await createInviteMutation.mutateAsync({
-        id: workspaceId,
-        data: { maxUses: parsed.data.maxUses },
-      });
-
-      if (response.status !== 201) {
-        throw response;
-      }
-
-      await invalidateInviteQueries();
-      showToast("success", "초대코드를 생성했습니다.");
-    } catch (error) {
-      showToast(
-        "error",
-        getApiErrorMessage(error, "초대코드 생성에 실패했습니다."),
-      );
-    }
-  };
-
-  const handleToggleInviteStatus = async (
-    inviteId: number,
-    nextStatus: "ACTIVE" | "INACTIVE",
-  ) => {
-    try {
-      setPendingToggleInviteId(inviteId);
-      const response = await updateInviteStatusMutation.mutateAsync({
-        id: workspaceId,
-        inviteId,
-        data: { status: nextStatus },
-      });
-
-      if (response.status !== 200) {
-        throw response;
-      }
-
-      await invalidateInviteQueries();
-      showToast(
-        "success",
-        nextStatus === "ACTIVE"
-          ? "초대코드를 활성화했습니다."
-          : "초대코드를 비활성화했습니다.",
-      );
-    } catch (error) {
-      showToast(
-        "error",
-        getApiErrorMessage(error, "초대코드 상태 변경에 실패했습니다."),
-      );
-    } finally {
-      setPendingToggleInviteId(null);
-    }
-  };
-
-  const handleCopyInviteCode = async (inviteId: number, code?: string) => {
-    if (!code) {
-      showToast("error", "복사할 코드가 없습니다.");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedInviteId(inviteId);
-      showToast("success", "초대코드를 복사했습니다.");
-      setTimeout(() => {
-        setCopiedInviteId((current) => (current === inviteId ? null : current));
-      }, 1200);
-    } catch {
-      showToast("error", "클립보드 복사에 실패했습니다.");
-    }
+    await createInvite(maxUses);
   };
 
   if (isLoading) {
@@ -246,12 +156,9 @@ export default function ProfileInvitesPage() {
                   min={1}
                   max={999}
                   value={maxUsesInput}
-                  onChange={(event) => {
-                    setMaxUsesInput(event.target.value);
-                    if (formError) {
-                      setFormError("");
-                    }
-                  }}
+                  onChange={(event) =>
+                    handleMaxUsesInputChange(event.target.value)
+                  }
                   placeholder="3"
                   className="h-full min-w-0 border-0 bg-transparent p-0 text-right text-sm font-semibold text-text-primary outline-none focus-visible:ring-0"
                 />
@@ -261,16 +168,14 @@ export default function ProfileInvitesPage() {
               <Button
                 type="button"
                 onClick={() => void handleCreateInvite()}
-                disabled={createInviteMutation.isPending}
+                disabled={isCreatingInvite}
                 className={`h-11 rounded-lg px-4 text-xs font-bold ${
-                  createInviteMutation.isPending
+                  isCreatingInvite
                     ? "cursor-not-allowed border border-border bg-sub-background text-text-muted"
                     : "btn-linear-primary"
                 }`}
               >
-                {createInviteMutation.isPending
-                  ? "생성 중..."
-                  : "초대코드 생성"}
+                {isCreatingInvite ? "생성 중..." : "초대코드 생성"}
               </Button>
             </div>
 
@@ -279,12 +184,7 @@ export default function ProfileInvitesPage() {
                 <Button
                   key={value}
                   type="button"
-                  onClick={() => {
-                    setMaxUsesInput(String(value));
-                    if (formError) {
-                      setFormError("");
-                    }
-                  }}
+                  onClick={() => selectPresetMaxUses(value)}
                   className={`h-7 rounded-full px-2.5 text-[11px] font-bold ${
                     Number(maxUsesInput) === value
                       ? "border border-primary/20 bg-primary/10 text-primary"
@@ -352,9 +252,7 @@ export default function ProfileInvitesPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <Button
                           type="button"
-                          onClick={() =>
-                            void handleCopyInviteCode(inviteId, code)
-                          }
+                          onClick={() => void copyInviteCode(inviteId, code)}
                           className="h-8 rounded-lg border border-border bg-white px-2.5 text-[11px] font-bold text-text-primary"
                         >
                           {isCopied ? (
@@ -375,7 +273,7 @@ export default function ProfileInvitesPage() {
                             isActive ? "초대코드 비활성화" : "초대코드 활성화"
                           }
                           onClick={() =>
-                            void handleToggleInviteStatus(
+                            void toggleInviteStatus(
                               inviteId,
                               isActive ? "INACTIVE" : "ACTIVE",
                             )
