@@ -38,8 +38,9 @@ import {
   Ticket,
   Users,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface MenuItem {
   id: string;
@@ -52,26 +53,12 @@ interface MenuItem {
   rightElement?: React.ReactNode;
 }
 
-function ProfileSkeleton() {
-  return (
-    <div className="min-h-screen bg-background font-pretendard">
-      <div className="max-w-[560px] mx-auto p-4 md:p-8 space-y-6 animate-pulse">
-        <div className="h-10 rounded-xl bg-sub-background" />
-        <div className="h-24 rounded-2xl bg-sub-background" />
-        <div className="space-y-4">
-          <div className="h-44 rounded-2xl bg-sub-background" />
-          <div className="h-36 rounded-2xl bg-sub-background" />
-          <div className="h-28 rounded-2xl bg-sub-background" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function ProfilePage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { showToast } = useToast();
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const hasHandledMissingUserRef = useRef(false);
   const { data: profileResponse, isLoading: isProfileLoading } =
     useGetUsersMe();
   const updateNicknameMutation = usePutUsersMe();
@@ -87,6 +74,16 @@ export default function ProfilePage() {
   const user = profileResponse?.status === 200 ? profileResponse.data : null;
   const workspace =
     workspaceResponse?.status === 200 ? workspaceResponse.data : null;
+
+  useEffect(() => {
+    if (isProfileLoading || user || hasHandledMissingUserRef.current) {
+      return;
+    }
+
+    hasHandledMissingUserRef.current = true;
+    showToast("error", "프로필 정보를 불러오지 못해 홈으로 이동합니다.");
+    router.replace("/dashboard/my");
+  }, [isProfileLoading, router, showToast, user]);
 
   if (isProfileLoading) {
     return <ProfileSkeleton />;
@@ -526,6 +523,22 @@ export default function ProfilePage() {
                 </div>
               </div>
             ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="min-h-screen bg-background font-pretendard">
+      <div className="max-w-[560px] mx-auto p-4 md:p-8 space-y-6 animate-pulse">
+        <div className="h-10 rounded-xl bg-sub-background" />
+        <div className="h-24 rounded-2xl bg-sub-background" />
+        <div className="space-y-4">
+          <div className="h-44 rounded-2xl bg-sub-background" />
+          <div className="h-36 rounded-2xl bg-sub-background" />
+          <div className="h-28 rounded-2xl bg-sub-background" />
         </div>
       </div>
     </div>
