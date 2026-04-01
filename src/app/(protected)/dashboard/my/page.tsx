@@ -1,6 +1,8 @@
 "use client";
 
 import { useGetUsersMe } from "@/api/generated/profile/profile";
+import { EmptyStatePanel } from "@/app/(protected)/_components/EmptyStatePanel";
+import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
 import { DashboardHeader } from "@/app/(protected)/dashboard/my/_components/DashboardHeader";
 import { MonthlyBoardSection } from "@/app/(protected)/dashboard/my/_components/MonthlyBoardSection";
 import { PeriodControls } from "@/app/(protected)/dashboard/my/_components/PeriodControls";
@@ -8,48 +10,16 @@ import { ProductUpdateCard } from "@/app/(protected)/dashboard/my/_components/Pr
 import { ScoreboardOverviewSection } from "@/app/(protected)/dashboard/my/_components/ScoreboardOverviewSection";
 import { WeeklyBoardSection } from "@/app/(protected)/dashboard/my/_components/WeeklyBoardSection";
 import { useDashboardScoreboard } from "@/app/(protected)/dashboard/my/_hooks/useDashboardScoreboard";
-import { EmptyStatePanel } from "@/app/(protected)/_components/EmptyStatePanel";
-import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
-import {
-  canPlayCelebration,
-  fireDashboardConfetti,
-  getCelebrationToastMessage,
-  getNextCelebrationEvent,
-  type CelebrationLevel,
-} from "@/app/(protected)/dashboard/my/_lib/dashboard-celebration";
+import { useMyDashboardPageState } from "@/app/(protected)/dashboard/my/_hooks/useMyDashboardPageState";
+import { type CelebrationLevel } from "@/app/(protected)/dashboard/my/_lib/dashboard-celebration";
 import { MY_DASHBOARD_LINKS } from "@/app/(protected)/dashboard/my/_lib/dashboard-links";
-import {
-  getCompletedWeeklyMeasureIds,
-  getWeeklyCelebrationSnapshot,
-  type WeeklyCelebrationSnapshot,
-} from "@/app/(protected)/dashboard/my/_lib/weekly-celebration";
 import { getMonthCalendarWeeks } from "@/app/(protected)/dashboard/my/_lib/week";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/context/ToastContext";
-import {
-  dismissProductUpdate,
-  getLatestMajorProductUpdate,
-  isProductUpdateDismissed,
-  readDismissedProductUpdate,
-} from "@/lib/product-updates";
-import {
-  Plus,
-  Zap,
-} from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 
 export default function MyDashboardPage() {
-  const [isUpdateCardVisible, setIsUpdateCardVisible] = useState(false);
-  const [celebrationEvent, setCelebrationEvent] = useState<{
-    id: number;
-    level: CelebrationLevel;
-  } | null>(null);
-  const previousWeeklySnapshotRef = useRef<WeeklyCelebrationSnapshot | null>(
-    null,
-  );
-  const previousCompletedMeasureIdsRef = useRef<Set<number>>(new Set());
-  const celebrationWatchRef = useRef(false);
   const { showToast } = useToast();
   const {
     activeLeadMeasures,
@@ -87,98 +57,29 @@ export default function MyDashboardPage() {
     },
   });
   const nickname =
-    profileResponse?.status === 200 ? (profileResponse.data.nickname ?? null) : null;
+    profileResponse?.status === 200
+      ? (profileResponse.data.nickname ?? null)
+      : null;
   const weeklyGoalCount = activeLeadMeasures.filter(
     (leadMeasure) => leadMeasure.period === "WEEKLY",
   ).length;
   const monthlyGoalCount = activeLeadMeasures.filter(
     (leadMeasure) => leadMeasure.period === "MONTHLY",
   ).length;
-  const weeklyCelebrationSnapshot = getWeeklyCelebrationSnapshot(
-    activeLeadMeasures,
-    weeklyById,
-  );
-  const monthWeeks = getMonthCalendarWeeks(selectedDate);
-  const latestMajorUpdate = getLatestMajorProductUpdate();
-
-  useEffect(() => {
-    if (!latestMajorUpdate) {
-      setIsUpdateCardVisible(false);
-      return;
-    }
-
-    const dismissed = readDismissedProductUpdate();
-    setIsUpdateCardVisible(
-      !isProductUpdateDismissed(latestMajorUpdate.id, dismissed),
-    );
-  }, [latestMajorUpdate]);
-
-  useEffect(() => {
-    const previousSnapshot = previousWeeklySnapshotRef.current;
-    const previousCompletedMeasureIds = previousCompletedMeasureIdsRef.current;
-    previousWeeklySnapshotRef.current = weeklyCelebrationSnapshot;
-    previousCompletedMeasureIdsRef.current = getCompletedWeeklyMeasureIds(
-      activeLeadMeasures,
-      weeklyById,
-    );
-
-    if (
-      previousSnapshot === null ||
-      selectedView !== "week" ||
-      !celebrationWatchRef.current
-    ) {
-      return;
-    }
-
-    if (
-      weeklyCelebrationSnapshot.totalCount === 0 ||
-      weeklyCelebrationSnapshot.completedCount <=
-        previousSnapshot.completedCount
-    ) {
-      if (!isLogPending) {
-        celebrationWatchRef.current = false;
-      }
-      return;
-    }
-
-    celebrationWatchRef.current = false;
-
-    setCelebrationEvent(
-      getNextCelebrationEvent({
-        activeLeadMeasures,
-        nextSnapshot: weeklyCelebrationSnapshot,
-        previousSnapshot,
-        previousCompletedMeasureIds,
-        weeklyById,
-      }),
-    );
-  }, [
+  const {
+    celebrationLevel,
+    handleDismissProductUpdate,
+    isUpdateCardVisible,
+    latestMajorUpdate,
+    markCelebrationPending,
+  } = useMyDashboardPageState({
     activeLeadMeasures,
     isLogPending,
     selectedView,
+    showToast,
     weeklyById,
-    weeklyCelebrationSnapshot,
-  ]);
-
-  useEffect(() => {
-    if (!canPlayCelebration(celebrationEvent, isLogPending)) {
-      return;
-    }
-
-    void fireDashboardConfetti(celebrationEvent.level);
-
-    showToast("success", getCelebrationToastMessage(celebrationEvent));
-
-    const timeout = window.setTimeout(() => {
-      setCelebrationEvent((current) =>
-        current?.id === celebrationEvent.id ? null : current,
-      );
-    }, 2800);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [celebrationEvent, isLogPending, showToast]);
+  });
+  const monthWeeks = getMonthCalendarWeeks(selectedDate);
 
   if (
     isLoading ||
@@ -201,8 +102,8 @@ export default function MyDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background font-pretendard">
-      {canPlayCelebration(celebrationEvent, isLogPending) ? (
-        <DashboardCelebrationOverlay level={celebrationEvent.level} />
+      {celebrationLevel ? (
+        <DashboardCelebrationOverlay level={celebrationLevel} />
       ) : null}
       <div className="max-w-[860px] mx-auto p-4 md:p-8 space-y-8 animate-linear-in">
         <DashboardHeader nickname={nickname} workspaceName={workspace?.name} />
@@ -219,10 +120,7 @@ export default function MyDashboardPage() {
         {latestMajorUpdate && isUpdateCardVisible ? (
           <ProductUpdateCard
             update={latestMajorUpdate}
-            onDismiss={() => {
-              dismissProductUpdate(latestMajorUpdate.id);
-              setIsUpdateCardVisible(false);
-            }}
+            onDismiss={handleDismissProductUpdate}
           />
         ) : null}
 
@@ -256,9 +154,7 @@ export default function MyDashboardPage() {
           ) : (
             <WeeklyBoardSection
               activeLeadMeasures={activeLeadMeasures}
-              onBeforeToggle={() => {
-                celebrationWatchRef.current = true;
-              }}
+              onBeforeToggle={markCelebrationPending}
               pendingLogKeys={pendingLogKeys}
               today={today}
               toggleLog={toggleLog}
@@ -342,8 +238,7 @@ function NoScoreboardState() {
               className="btn-linear-primary flex items-center gap-2 w-fit px-5 py-3 text-sm"
             >
               <Link href="/setup?mode=create">
-                <Plus className="w-4 h-4" />
-                새 점수판 만들기
+                <Plus className="w-4 h-4" />새 점수판 만들기
               </Link>
             </Button>
           }
