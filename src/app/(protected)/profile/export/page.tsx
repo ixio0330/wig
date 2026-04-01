@@ -1,170 +1,49 @@
 "use client";
 
-import { getAnalyticsExportData } from "@/api/generated/analytics/analytics";
-import { useGetUsersMe } from "@/api/generated/profile/profile";
-import { useGetScoreboardsActive } from "@/api/generated/scoreboard/scoreboard";
-import { useGetWorkspacesMe } from "@/api/generated/workspace/workspace";
 import { EmptyStatePanel } from "@/app/(protected)/_components/EmptyStatePanel";
 import { NoWorkspaceActions } from "@/app/(protected)/_components/NoWorkspaceActions";
-import { getTodayInKst, getWeekDates } from "@/app/(protected)/dashboard/my/_lib/week";
-import {
-  buildExportCsv,
-  downloadCsv,
-  getDayCountInclusive,
-} from "@/app/(protected)/profile/export/_lib/export-csv";
+import { useProfileExportAction } from "@/app/(protected)/profile/export/_hooks/useProfileExportAction";
+import { useProfileExportData } from "@/app/(protected)/profile/export/_hooks/useProfileExportData";
+import { useProfileExportForm } from "@/app/(protected)/profile/export/_hooks/useProfileExportForm";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
-import { useToast } from "@/context/ToastContext";
-import {
-  getApiErrorMessage,
-  getApiErrorStatus,
-  toNumberId,
-} from "@/lib/client/frontend-api";
 import { Download, Plus } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 
 export default function ProfileExportPage() {
-  const { showToast } = useToast();
-  const [isExporting, setIsExporting] = useState(false);
-  const [splitByWeek, setSplitByWeek] = useState(false);
-  const today = getTodayInKst();
-  const thisWeek = getWeekDates(today);
-
-  const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersMe();
   const {
-    data: workspaceResponse,
-    isLoading: isWorkspaceLoading,
-    error: workspaceError,
-  } = useGetWorkspacesMe({
-    query: {
-      retry: (failureCount, error) =>
-        getApiErrorStatus(error) !== 404 && failureCount < 3,
-    },
-  });
+    activeScoreboard,
+    exportMeasureOptions,
+    hasNoScoreboard,
+    hasNoWorkspace,
+    isLoading,
+    user,
+    workspace,
+  } = useProfileExportData();
   const {
-    data: activeScoreboardResponse,
-    isLoading: isScoreboardLoading,
-    error: scoreboardError,
-  } = useGetScoreboardsActive({
-    query: {
-      retry: (failureCount, error) =>
-        getApiErrorStatus(error) !== 404 && failureCount < 1,
-    },
+    exportFrom,
+    exportTo,
+    handleExportFromChange,
+    handleExportToChange,
+    isAllMeasuresSelected,
+    selectedExportMeasureIds,
+    splitByWeek,
+    toggleExportMeasure,
+    toggleSelectAllMeasures,
+    toggleSplitByWeek,
+  } = useProfileExportForm({
+    exportMeasureOptions,
+  });
+  const { exportCsv, isExporting } = useProfileExportAction({
+    exportFrom,
+    exportTo,
+    selectedExportMeasureIds,
+    splitByWeek,
   });
 
-  const user = profileResponse?.status === 200 ? profileResponse.data : null;
-  const workspace = workspaceResponse?.status === 200 ? workspaceResponse.data : null;
-  const activeScoreboard =
-    activeScoreboardResponse?.status === 200
-      ? activeScoreboardResponse.data
-      : null;
-
-  const hasNoWorkspace = getApiErrorStatus(workspaceError) === 404;
-  const hasNoScoreboard = getApiErrorStatus(scoreboardError) === 404;
-
-  const [exportFrom, setExportFrom] = useState(thisWeek[0] ?? today);
-  const [exportTo, setExportTo] = useState(thisWeek[6] ?? today);
-
-  const exportMeasureOptions = useMemo(
-    () =>
-      (activeScoreboard?.leadMeasures ?? [])
-        .filter((measure) => measure.status === "ACTIVE")
-        .map((measure) => ({
-          id: toNumberId(measure.id),
-          name: measure.name,
-        }))
-        .filter(
-          (measure): measure is { id: number; name: string } =>
-            measure.id !== null,
-        ),
-    [activeScoreboard],
-  );
-
-  const [selectedExportMeasureIds, setSelectedExportMeasureIds] = useState<number[]>(
-    [],
-  );
-
-  useEffect(() => {
-    const nextIds = exportMeasureOptions.map((measure) => measure.id);
-    setSelectedExportMeasureIds((previous) => {
-      if (
-        previous.length === nextIds.length &&
-        previous.every((id, index) => id === nextIds[index])
-      ) {
-        return previous;
-      }
-
-      return nextIds;
-    });
-  }, [exportMeasureOptions]);
-
-  const isAllMeasuresSelected =
-    exportMeasureOptions.length > 0 &&
-    selectedExportMeasureIds.length === exportMeasureOptions.length;
-
-  const toggleExportMeasure = (measureId: number) => {
-    setSelectedExportMeasureIds((previous) =>
-      previous.includes(measureId)
-        ? previous.filter((id) => id !== measureId)
-        : [...previous, measureId],
-    );
-  };
-
-  const toggleSelectAllMeasures = () => {
-    setSelectedExportMeasureIds(
-      isAllMeasuresSelected ? [] : exportMeasureOptions.map((measure) => measure.id),
-    );
-  };
-
-  const handleExportCsv = async () => {
-    const dayCount = getDayCountInclusive(exportFrom, exportTo);
-    if (dayCount === null) {
-      showToast("error", "기간 날짜 형식을 확인해주세요.");
-      return;
-    }
-    if (dayCount <= 0) {
-      showToast("info", "종료일은 시작일 이후여야 합니다.");
-      return;
-    }
-    if (dayCount > 92) {
-      showToast("info", "조회 기간은 최대 92일까지 가능합니다.");
-      return;
-    }
-    if (selectedExportMeasureIds.length === 0) {
-      showToast("info", "최소 1개 이상의 선행지표를 선택해주세요.");
-      return;
-    }
-
-    setIsExporting(true);
-
-    try {
-      const response = await getAnalyticsExportData({
-        from: exportFrom,
-        to: exportTo,
-        leadMeasureIds: selectedExportMeasureIds,
-      });
-      if (response.status !== 200) {
-        showToast("error", "내보내기 데이터를 불러오지 못했습니다.");
-        return;
-      }
-
-      const csv = buildExportCsv(response.data, splitByWeek);
-      downloadCsv(csv, exportFrom, exportTo);
-      showToast("success", "CSV 다운로드를 시작했습니다.");
-    } catch (error) {
-      showToast(
-        "error",
-        getApiErrorMessage(error, "내보내기 데이터를 불러오지 못했습니다."),
-      );
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  if (isProfileLoading || isWorkspaceLoading || isScoreboardLoading) {
+  if (isLoading) {
     return <ExportSkeleton />;
   }
 
@@ -201,7 +80,9 @@ export default function ProfileExportPage() {
 
         <Card className="border border-border rounded-lg p-4 space-y-4">
           <div className="space-y-1">
-            <h2 className="text-sm font-bold text-text-primary">내보내기 조건</h2>
+            <h2 className="text-sm font-bold text-text-primary">
+              내보내기 조건
+            </h2>
             <p className="text-[11px] text-text-muted">
               기간(최대 92일)과 선행지표를 선택해 CSV 파일로 내려받습니다.
             </p>
@@ -213,7 +94,7 @@ export default function ProfileExportPage() {
               <input
                 type="date"
                 value={exportFrom}
-                onChange={(event) => setExportFrom(event.target.value)}
+                onChange={(event) => handleExportFromChange(event.target.value)}
                 className="min-w-0 flex-1 bg-transparent font-mono text-text-primary outline-none"
               />
             </label>
@@ -222,7 +103,7 @@ export default function ProfileExportPage() {
               <input
                 type="date"
                 value={exportTo}
-                onChange={(event) => setExportTo(event.target.value)}
+                onChange={(event) => handleExportToChange(event.target.value)}
                 className="min-w-0 flex-1 bg-transparent font-mono text-text-primary outline-none"
               />
             </label>
@@ -230,7 +111,9 @@ export default function ProfileExportPage() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-bold text-text-muted">선행지표 선택</p>
+              <p className="text-[11px] font-bold text-text-muted">
+                선행지표 선택
+              </p>
               <Button
                 type="button"
                 onClick={toggleSelectAllMeasures}
@@ -265,7 +148,7 @@ export default function ProfileExportPage() {
             <input
               type="checkbox"
               checked={splitByWeek}
-              onChange={(event) => setSplitByWeek(event.target.checked)}
+              onChange={(event) => toggleSplitByWeek(event.target.checked)}
               className="h-3.5 w-3.5"
             />
             <span>주차별로 섹션 분리해서 내보내기</span>
@@ -277,7 +160,7 @@ export default function ProfileExportPage() {
             </p>
             <Button
               type="button"
-              onClick={() => void handleExportCsv()}
+              onClick={() => void exportCsv()}
               disabled={isExporting}
               className="h-9 w-full rounded-lg bg-primary px-4 text-xs font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto flex items-center justify-center gap-1.5"
             >
@@ -354,8 +237,7 @@ function NoScoreboardState() {
               className="btn-linear-primary flex items-center gap-2 w-fit px-5 py-3 text-sm"
             >
               <Link href="/setup?mode=create">
-                <Plus className="w-4 h-4" />
-                새 점수판 만들기
+                <Plus className="w-4 h-4" />새 점수판 만들기
               </Link>
             </Button>
           }
