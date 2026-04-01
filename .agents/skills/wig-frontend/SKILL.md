@@ -27,6 +27,9 @@ If current code and docs differ, verify the implementation and preserve establis
 - Use `asChild` when a `Button` wraps `Link`.
 - React 19 means new `forwardRef` wrappers should not be introduced by default.
 - Use Lucide React for icons.
+- When a page owns both local client state and TanStack Query server-state logic, split them into domain hooks instead of keeping both concerns in the page component.
+- Put local form state, field handlers, and client-side validation in a dedicated `use...Form` hook.
+- Put TanStack Query mutations, cache invalidation, toast handling, and navigation side effects in a dedicated domain hook such as `use...Mutation`.
 - Page-local status components such as skeleton, empty, error, and no-workspace states should stay in the same page/domain file by default.
 - Declare those page-local status components near the bottom of the file, like private helpers for the main page/domain component, unless they are reused across multiple files.
 - Use Zod for form validation.
@@ -49,6 +52,8 @@ Decide whether the change belongs in:
 - `src/app/<domain>/_hooks` for domain hooks
 - `src/context` or shared hooks only if the concern is truly cross-domain
 
+If a page starts accumulating input state, validation, mutation wiring, invalidation, toast calls, and navigation effects together, move that logic into `_hooks` before adding more UI code.
+
 ### 2. Confirm data shape before coding
 
 If the UI depends on API data:
@@ -64,6 +69,7 @@ When contracts change, regenerate the client.
 - preserve the current WIG aesthetic and utility patterns
 - keep loading, empty, error, and success states explicit
 - prefer keeping skeleton, empty, and similar fallback UIs as page-local helpers in the same file instead of splitting them into separate top-level files too early
+- keep page components focused on composition and rendering; move form state and server-state orchestration into domain hooks when the logic is non-trivial
 - use toast feedback for meaningful actions
 - keep forms and buttons disabled during pending submissions when needed
 
@@ -96,6 +102,7 @@ yarn test:storybook --run
 - If a button navigates, is `asChild` used correctly?
 - Are loading, empty, and error states handled?
 - Are page-local skeleton, empty, error, and no-workspace UIs kept in the same file near the bottom unless reuse justifies extraction?
+- If the page mixes local form state and TanStack Query mutation logic, did you split them into domain hooks with clear responsibilities?
 - If server state changed, were related queries invalidated?
 - If query-string state is needed, did you choose between server `searchParams` props and client `useSearchParams()` intentionally, and add `Suspense` when using the client hook?
 - If API contracts changed, was `yarn gen:api` run?
