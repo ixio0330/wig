@@ -10,16 +10,24 @@ import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { Plus, Zap } from "lucide-react";
 
 export default function NewWorkspacePage() {
+  const { error, getValidatedName, name, setError, handleNameChange } =
+    useCreateWorkspaceForm();
   const { isPending, submitCreateWorkspace } = useCreateWorkspaceMutation({
     onError: (message) => {
       setError(message);
     },
   });
 
-  const { error, name, setError, handleNameChange, handleSubmit } =
-    useCreateWorkspaceForm({
-      onSubmitName: submitCreateWorkspace,
-    });
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const validatedName = getValidatedName();
+    if (!validatedName) {
+      return;
+    }
+
+    submitCreateWorkspace(validatedName);
+  };
 
   return (
     <div className="min-h-screen bg-background font-pretendard flex items-center justify-center p-6">

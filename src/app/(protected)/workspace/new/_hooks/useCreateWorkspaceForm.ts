@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 
-type UseCreateWorkspaceFormParams = {
-  onSubmitName: (name: string) => void;
-};
-
-export const useCreateWorkspaceForm = ({
-  onSubmitName,
-}: UseCreateWorkspaceFormParams) => {
+export const useCreateWorkspaceForm = () => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
@@ -20,24 +14,22 @@ export const useCreateWorkspaceForm = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const getValidatedName = () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
       setError("워크스페이스 이름을 입력해주세요.");
-      return;
+      return null;
     }
 
     setError("");
-    onSubmitName(trimmedName);
+    return trimmedName;
   };
 
   return {
     error,
+    getValidatedName,
     name,
     setError,
     handleNameChange,
-    handleSubmit,
   };
 };
