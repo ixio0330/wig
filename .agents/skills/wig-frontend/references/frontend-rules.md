@@ -14,6 +14,8 @@
 - Use `asChild` when `Button` wraps `Link`.
 - Do not introduce new `forwardRef` wrappers by default.
 - Use Lucide icons.
+- Keep page-local skeleton, empty, error, and similar status UIs in the same page/domain file by default.
+- Declare those page-local status helpers near the bottom of the file unless reuse across multiple files justifies extraction.
 - Use Zod for forms.
 - Use generated Orval hooks and TanStack Query for server state.
 - Invalidate related queries after mutations.
