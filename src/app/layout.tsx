@@ -5,6 +5,7 @@ import { publicRuntimeConfig } from "@/config/public-runtime-config";
 import { ToastProvider } from "@/context/ToastContext";
 import { useSerwistRegistration } from "@/hooks/useSerwistRegistration";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Script from "next/script";
 import { Suspense, useState } from "react";
 import "@/app/globals.css";
 
@@ -13,6 +14,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = publicRuntimeConfig.nextPublicGaId;
   const shouldRegisterServiceWorker = !publicRuntimeConfig.isDevelopment;
   useSerwistRegistration(shouldRegisterServiceWorker);
   const [queryClient] = useState(
@@ -124,6 +126,23 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {gaId ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="gtag-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){window.dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', '${gaId}');
+              `}
+            </Script>
+          </>
+        ) : null}
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
             <Suspense fallback={null}>
