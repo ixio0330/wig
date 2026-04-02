@@ -3,6 +3,7 @@
 import { NavigationHistoryTracker } from "@/components/NavigationHistoryTracker";
 import { publicRuntimeConfig } from "@/config/public-runtime-config";
 import { ToastProvider } from "@/context/ToastContext";
+import { usePushNotificationAnalytics } from "@/hooks/usePushNotificationAnalytics";
 import { useSerwistRegistration } from "@/hooks/useSerwistRegistration";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Script from "next/script";
@@ -17,6 +18,7 @@ export default function RootLayout({
   const gaId = publicRuntimeConfig.nextPublicGaId;
   const shouldRegisterServiceWorker = !publicRuntimeConfig.isDevelopment;
   useSerwistRegistration(shouldRegisterServiceWorker);
+  usePushNotificationAnalytics(gaId.length > 0);
   const [queryClient] = useState(
     () =>
       new QueryClient({
