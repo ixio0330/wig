@@ -17,7 +17,8 @@ Start with:
 2. the matching domain doc
 3. `docs/dev/common/2026.03.09-database-schema.md` when the task adds a new feature or changes persisted data
 4. the current implementation
-5. related common docs only when needed
+5. `.agents/skills/wig-performance-check/SKILL.md` when the task changes heavy reads, aggregation, loops, or query volume
+6. related common docs only when needed
 
 If docs conflict with code, verify the implementation and trust the current code path.
 
@@ -32,6 +33,7 @@ If docs conflict with code, verify the implementation and trust the current code
 - Auth-required routes should use `getSession`.
 - SQL must use Prepared Statement patterns through Drizzle or binding.
 - Keep backend date storage and API-facing canonical date values in UTC unless a domain doc explicitly says otherwise.
+- Backend changes that add heavy aggregation, repeated scans, or broader DB reads should include `wig-performance-check` before completion.
 - When creating commits, follow `docs/planning/2026.04.09-commit-convention.md`. Prefer `feat|fix|docs|chore|refactor|style` with the format `<type>: <변경 요약>`.
 
 For detailed file paths and doc priorities, read `references/backend-rules.md`.
@@ -123,7 +125,25 @@ If browser-based Storybook verification matters, run separately:
 yarn test:storybook --run
 ```
 
-### 7. Commit order
+### 7. Check performance when the path is sensitive
+
+If the backend change affects expensive reads or server-side computation, do not stop at correctness only. Review the changed path in code and check for:
+
+- repeated `filter` or `reduce` scans over the same dataset
+- N+1 style query expansion or wider-than-needed DB reads
+- avoidable per-member or per-measure nested loops in aggregation code
+- unnecessary data loading when only part of the shape is needed
+
+Start with `wig-performance-check` when the path is sensitive.
+
+Typical triggers:
+
+- dashboard aggregation changes
+- weekly or monthly log calculation changes
+- new list endpoints over workspace-wide data
+- schema changes that can alter query cost or index needs
+
+### 8. Commit order
 
 When backend work is committed in multiple steps, keep the repository commit format above and prefer this order:
 
@@ -147,6 +167,7 @@ The rule here is about how to split and order commits so review stays clear.
 - Are `apiSuccess` and `apiError` used consistently?
 - Is storage logic isolated from route code?
 - Are prepared statements or Drizzle-safe bindings used?
+- If the changed path is aggregation-heavy or query-heavy, was a performance review done?
 - Did tests, types, and lint run for the change?
 
 ## When To Update Docs
