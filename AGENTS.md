@@ -47,6 +47,7 @@ Available local skills:
 - `wig-frontend`
 - `wig-planning`
 - `wig-quality-check`
+- `wig-security-check`
 - `wig-product-updates`
 
 Skill file locations:
@@ -55,6 +56,7 @@ Skill file locations:
 - `.agents/skills/wig-frontend/SKILL.md`
 - `.agents/skills/wig-planning/SKILL.md`
 - `.agents/skills/wig-quality-check/SKILL.md`
+- `.agents/skills/wig-security-check/SKILL.md`
 - `.agents/skills/wig-product-updates/SKILL.md`
 
 How to use them:
@@ -81,6 +83,10 @@ Trigger examples:
   - "이번 변경 배포 전에 품질 체크해줘"
   - "이 PR 기준으로 회귀 위험 검토해줘"
   - "테스트/린트/타입/수동 검증 기준으로 점검해줘"
+- `wig-security-check`
+  - "이 PR 보안 관점에서 검토해줘"
+  - "auth/인가/소유권 누락 없는지 봐줘"
+  - "민감정보 노출이나 validation 구멍 있는지 체크해줘"
 - `wig-product-updates`
   - "새 기능 모아보기에 이번 기능 추가해줘"
   - "대시보드 상단 공지 카드용 업데이트 카피 넣어줘"
