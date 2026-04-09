@@ -15,8 +15,9 @@ Start with:
 
 1. `references/backend-rules.md`
 2. the matching domain doc
-3. the current implementation
-4. related common docs only when needed
+3. `docs/dev/common/2026.03.09-database-schema.md` when the task adds a new feature or changes persisted data
+4. the current implementation
+5. related common docs only when needed
 
 If docs conflict with code, verify the implementation and trust the current code path.
 
@@ -43,7 +44,29 @@ Open the matching domain doc and extract business rules, error cases, auth rules
 
 If the task adds or changes an API, update `src/api-spec/openapi.yaml` first so the contract is explicit before implementation.
 
-### 2. Start with tests when the change is backend behavior
+If the task is a new feature and needs new persisted data or changed relational rules, design the schema before backend implementation. That means reviewing `docs/dev/common/2026.03.09-database-schema.md`, `src/db/schema.ts`, related storage code, and the needed constraints before writing route/service code.
+
+### 2. Design schema first when the feature needs it
+
+For a new feature with new tables, columns, relations, or constraints, prefer this order:
+
+1. domain rules
+2. API contract when relevant
+3. DB schema design
+4. validation
+5. service
+6. storage
+7. route handler
+
+Schema design here includes:
+
+- table and column shape
+- nullable vs required fields
+- unique constraints and indexes
+- foreign keys and cascade behavior
+- ownership and workspace boundaries implied by the data model
+
+### 3. Start with tests when the change is backend behavior
 
 Follow Red -> Green -> Refactor when feasible.
 
@@ -57,25 +80,26 @@ Follow Red -> Green -> Refactor when feasible.
   - cookie/header handling
   - file upload, streaming, redirects, or route-only integration behavior
 
-### 3. Implement in the existing layers
+### 4. Implement in the existing layers
 
 Preferred flow:
 
 1. OpenAPI contract
-2. validation
-3. service
-4. storage
-5. route handler
-6. shared lib helpers only if needed
+2. DB schema when needed
+3. validation
+4. service
+5. storage
+6. route handler
+7. shared lib helpers only if needed
 
-### 4. Keep repository conventions
+### 5. Keep repository conventions
 
 - preserve Korean error messages and existing error codes
 - match the documented response shapes
 - use session-cookie auth checks consistently
 - keep ownership checks in query conditions where possible
 
-### 5. Run verification
+### 6. Run verification
 
 Use the smallest useful verification set first, then broaden:
 
@@ -99,14 +123,15 @@ If browser-based Storybook verification matters, run separately:
 yarn test:storybook --run
 ```
 
-### 6. Commit order
+### 7. Commit order
 
 When backend work is committed in multiple steps, keep the repository commit format above and prefer this order:
 
 1. API spec
-2. tests
-3. implementation
-4. docs
+2. schema
+3. tests
+4. implementation
+5. docs
 
 This does not change the implementation workflow above.
 You should still design and write tests before or alongside implementation when the behavior change warrants it.
@@ -115,6 +140,7 @@ The rule here is about how to split and order commits so review stays clear.
 ## Backend Checklist
 
 - If this is a new or changed API, was `src/api-spec/openapi.yaml` updated first?
+- If this feature needs persisted data, was the schema designed before backend implementation?
 - Does the change match the domain business rules?
 - Is Zod validation present where request data enters?
 - Are auth and ownership checks correct?
