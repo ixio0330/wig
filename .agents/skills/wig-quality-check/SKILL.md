@@ -26,6 +26,7 @@ If the quality doc conflicts with current implementation, verify the code and us
 - Frontend verification should include loading, empty, error, responsive, and rollback behavior where relevant.
 - Current auth implementation uses the `wig_sid` session cookie pattern.
 - Treat repository-wide `tsc` and `lint` results as potentially noisy until the known baseline issues are fixed.
+- When recommending follow-up commits, follow `docs/planning/2026.04.09-commit-convention.md`.
 
 For detailed gates, command sets, and domain-specific checks, read `references/quality-rules.md`.
 

@@ -38,6 +38,7 @@ If current code and docs differ, verify the implementation and preserve establis
 - Do not introduce `useSearchParams()` in a page path unless it is wrapped by a `Suspense` boundary. If the value can be resolved on the server, prefer reading the page `searchParams` prop and passing it down instead.
 - Treat date display and date-key generation in the UI as KST-based unless the current feature explicitly requires another timezone.
 - Keep mobile behavior in scope, especially dashboard and scoreboard flows.
+- When creating commits, follow `docs/planning/2026.04.09-commit-convention.md`. Prefer `feat|fix|docs|chore|refactor|style` with the format `<type>: <변경 요약>`.
 
 For detailed file paths and doc priorities, read `references/frontend-rules.md`.
 
@@ -94,6 +95,17 @@ yarn storybook
 yarn test
 yarn test:storybook --run
 ```
+
+### 6. Commit order
+
+When frontend work is committed in multiple steps, prefer this order:
+
+1. `gen:api`
+2. UI
+3. API integration
+4. docs
+
+Apply `gen:api` only when the API contract actually changed. If there is no contract change, start from UI or API integration as appropriate.
 
 ## Frontend Checklist
 

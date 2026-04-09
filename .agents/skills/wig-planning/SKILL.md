@@ -28,6 +28,7 @@ Read implementation only when feasibility or current status matters.
 - Planning should produce concrete action items, not only abstract ideas.
 - Respect the 4DX framing already used across WIG documents.
 - Keep `docs/onboarding.md` current enough that another agent can start work quickly.
+- When creating commits for planning/doc changes, follow `docs/planning/2026.04.09-commit-convention.md`. Prefer `docs: <변경 요약>` unless the change is clearly another type.
 
 For detailed file paths and planning priorities, read `references/planning-rules.md`.
 

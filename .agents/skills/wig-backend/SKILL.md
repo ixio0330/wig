@@ -31,6 +31,7 @@ If docs conflict with code, verify the implementation and trust the current code
 - Auth-required routes should use `getSession`.
 - SQL must use Prepared Statement patterns through Drizzle or binding.
 - Keep backend date storage and API-facing canonical date values in UTC unless a domain doc explicitly says otherwise.
+- When creating commits, follow `docs/planning/2026.04.09-commit-convention.md`. Prefer `feat|fix|docs|chore|refactor|style` with the format `<type>: <변경 요약>`.
 
 For detailed file paths and doc priorities, read `references/backend-rules.md`.
 
@@ -100,7 +101,7 @@ yarn test:storybook --run
 
 ### 6. Commit order
 
-When backend work is committed in multiple steps, prefer this order:
+When backend work is committed in multiple steps, keep the repository commit format above and prefer this order:
 
 1. API spec
 2. tests
