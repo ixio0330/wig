@@ -87,3 +87,7 @@ If planning decisions harden into implementation constraints, update or create t
 - `docs/dev/common/`
 - `docs/dev/<domain>/`
 - `docs/onboarding.md`
+
+## Next Step
+
+After planning scope and action items are concrete, move to `wig-backend` for the backend implementation phase.

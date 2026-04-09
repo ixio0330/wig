@@ -74,3 +74,7 @@ When reporting, prioritize:
 - Are request body, params, and query values validated?
 - Are secrets, cookies, passwords, and recovery codes kept out of logs and error payloads?
 - Did the review check the real implementation, not only the docs?
+
+## Next Step
+
+If the changed path passes this review or the remaining risks are accepted explicitly, the work can be treated as complete.

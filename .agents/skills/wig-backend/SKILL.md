@@ -130,3 +130,7 @@ Update the relevant docs when backend behavior or contracts changed materially:
 - `src/api-spec/openapi.yaml`
 - matching domain doc in `docs/dev/`
 - `docs/onboarding.md` for backend process or architecture changes
+
+## Next Step
+
+After backend behavior is implemented and verified, move to `wig-frontend` to connect the user-facing flow to the finished backend path.

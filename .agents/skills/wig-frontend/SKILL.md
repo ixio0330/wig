@@ -128,3 +128,7 @@ Update docs when frontend conventions or user-facing flows change materially:
 - relevant domain doc in `docs/dev/`
 - `docs/onboarding.md`
 - this skill or `references/frontend-rules.md` if the frontend standard itself changed
+
+## Next Step
+
+After frontend integration is finished, run `wig-security-check` on the final changed path before treating the work as complete.
