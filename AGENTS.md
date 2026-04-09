@@ -49,6 +49,7 @@ Available local skills:
 - `wig-quality-check`
 - `wig-performance-check`
 - `wig-security-check`
+- `wig-harness-security-check`
 - `wig-product-updates`
 
 Skill file locations:
@@ -59,6 +60,7 @@ Skill file locations:
 - `.agents/skills/wig-quality-check/SKILL.md`
 - `.agents/skills/wig-performance-check/SKILL.md`
 - `.agents/skills/wig-security-check/SKILL.md`
+- `.agents/skills/wig-harness-security-check/SKILL.md`
 - `.agents/skills/wig-product-updates/SKILL.md`
 
 How to use them:
@@ -93,6 +95,10 @@ Trigger examples:
   - "이 PR 보안 관점에서 검토해줘"
   - "auth/인가/소유권 누락 없는지 봐줘"
   - "민감정보 노출이나 validation 구멍 있는지 체크해줘"
+- `wig-harness-security-check`
+  - "AGENTS.md나 codex.md에 위험한 지시 없는지 봐줘"
+  - "우리 에이전트 스킬/프롬프트 보안 체크해줘"
+  - "비밀값 노출이나 과한 권한 지시가 없는지 검토해줘"
 - `wig-product-updates`
   - "새 기능 모아보기에 이번 기능 추가해줘"
   - "대시보드 상단 공지 카드용 업데이트 카피 넣어줘"
@@ -110,3 +116,12 @@ yarn gen:api
 ```
 
 Only run the commands relevant to the change.
+
+When the change touches the AI operating layer, add a harness security pass before completion.
+
+Typical triggers:
+
+- `AGENTS.md`
+- `codex.md`
+- `.agents/skills/**`
+- agent permission, approval, or automation guidance
