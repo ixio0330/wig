@@ -80,6 +80,37 @@ A good planning update should leave behind:
 - Does the plan align with existing domain rules and 4DX terminology?
 - Should `docs/onboarding.md` also be updated?
 
+## Output Contract
+
+When finishing planning work, report with this shape by default:
+
+```text
+stage: planning
+status: pass|needs_revision|fail
+summary: 한두 문장 요약
+findings:
+- ...
+failure_categories:
+- ...
+return_to: planning|none
+next_step: 다음 단계 또는 후속 작업
+```
+
+Use these planning-oriented categories when relevant:
+
+- `scope_gap`
+- `mvp_boundary_gap`
+- `doc_impl_drift`
+
+Return rules:
+
+- `pass`
+  - scope, boundaries, and next actions are clear enough for implementation
+- `needs_revision`
+  - planning is directionally correct, but scope or success criteria need tightening
+- `fail`
+  - planning is not usable yet and should stay in `planning`
+
 ## When To Escalate To Engineering Docs
 
 If planning decisions harden into implementation constraints, update or create the matching docs in:

@@ -170,6 +170,41 @@ The rule here is about how to split and order commits so review stays clear.
 - If the changed path is aggregation-heavy or query-heavy, was a performance review done?
 - Did tests, types, and lint run for the change?
 
+## Output Contract
+
+When finishing backend work, report with this shape by default:
+
+```text
+stage: backend
+status: pass|needs_revision|fail
+summary: 한두 문장 요약
+findings:
+- ...
+failure_categories:
+- ...
+return_to: planning|backend|none
+next_step: 다음 단계 또는 검증
+```
+
+Use these backend-oriented categories when relevant:
+
+- `api_contract_mismatch`
+- `schema_design_gap`
+- `missing_validation`
+- `missing_test`
+- `auth_gap`
+- `ownership_gap`
+- `doc_impl_drift`
+
+Return rules:
+
+- `pass`
+  - backend contract, implementation, and relevant verification are aligned
+- `needs_revision`
+  - the backend path is close, but fixes are needed before handoff
+- `fail`
+  - the current approach should not move forward; return to `planning` when scope or contract is wrong, otherwise return to `backend`
+
 ## When To Update Docs
 
 Update the relevant docs when backend behavior or contracts changed materially:

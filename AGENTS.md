@@ -43,6 +43,7 @@ This repository contains project-local skill drafts in `.agents/skills/`.
 
 Available local skills:
 
+- `wig-orchestrator`
 - `wig-backend`
 - `wig-frontend`
 - `wig-planning`
@@ -54,6 +55,7 @@ Available local skills:
 
 Skill file locations:
 
+- `.agents/skills/wig-orchestrator/SKILL.md`
 - `.agents/skills/wig-backend/SKILL.md`
 - `.agents/skills/wig-frontend/SKILL.md`
 - `.agents/skills/wig-planning/SKILL.md`
@@ -71,6 +73,10 @@ How to use them:
 
 Trigger examples:
 
+- `wig-orchestrator`
+  - "이 기능 요청 어디서부터 시작해야 할지 정리하고 단계 나눠줘"
+  - "기획부터 구현, 검토까지 어떤 순서로 갈지 오케스트레이션해줘"
+  - "이 변경을 planning/backend/frontend 중 어디로 보내야 하는지 판단해줘"
 - `wig-backend`
   - "로그인 API 에러 응답 규격 맞춰줘"
   - "workspace 멤버 강퇴 API 추가해줘"

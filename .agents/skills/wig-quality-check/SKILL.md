@@ -77,3 +77,40 @@ When reviewing or validating, report:
 - Were type and lint checks run when appropriate?
 - Were responsive or UI state checks included for frontend work?
 - If this is release-facing, were manual checks considered?
+
+## Output Contract
+
+When finishing quality review, report with this shape by default:
+
+```text
+stage: quality
+status: pass|needs_revision|fail
+summary: 한두 문장 요약
+findings:
+- ...
+failure_categories:
+- ...
+return_to: planning|backend|frontend|none
+next_step: 다음 수정 단계 또는 추가 검증
+```
+
+Use these quality-oriented categories when relevant:
+
+- `api_contract_mismatch`
+- `missing_test`
+- `state_handling_gap`
+- `rollback_gap`
+- `doc_impl_drift`
+
+Return rules:
+
+- `pass`
+  - the checked path is safe to move to the next gate or completion
+- `needs_revision`
+  - issues are actionable and should return to the nearest implementation stage
+- `fail`
+  - the current result should not proceed; explicitly choose `planning`, `backend`, or `frontend` based on the real source of the regression
+
+## Next Step
+
+After quality review passes, continue to `wig-performance-check` or `wig-security-check` when those gates still apply.

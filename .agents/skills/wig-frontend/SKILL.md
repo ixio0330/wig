@@ -121,6 +121,39 @@ Apply `gen:api` only when the API contract actually changed. If there is no cont
 - If shared UI changed, was Storybook updated?
 - Was mobile layout considered?
 
+## Output Contract
+
+When finishing frontend work, report with this shape by default:
+
+```text
+stage: frontend
+status: pass|needs_revision|fail
+summary: 한두 문장 요약
+findings:
+- ...
+failure_categories:
+- ...
+return_to: planning|backend|frontend|none
+next_step: 다음 단계 또는 검증
+```
+
+Use these frontend-oriented categories when relevant:
+
+- `api_contract_mismatch`
+- `state_handling_gap`
+- `rollback_gap`
+- `missing_test`
+- `doc_impl_drift`
+
+Return rules:
+
+- `pass`
+  - UI integration, state handling, and relevant verification are ready for review
+- `needs_revision`
+  - frontend fixes are needed, but the task should stay in `frontend`
+- `fail`
+  - return to `backend` when the blocking issue is contract or API behavior; return to `planning` when the scope itself is wrong; otherwise return to `frontend`
+
 ## When To Update Docs
 
 Update docs when frontend conventions or user-facing flows change materially:

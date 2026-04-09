@@ -75,6 +75,38 @@ When reporting, prioritize:
 - Are secrets, cookies, passwords, and recovery codes kept out of logs and error payloads?
 - Did the review check the real implementation, not only the docs?
 
+## Output Contract
+
+When finishing security review, report with this shape by default:
+
+```text
+stage: security
+status: pass|needs_revision|fail
+summary: 한두 문장 요약
+findings:
+- ...
+failure_categories:
+- ...
+return_to: planning|backend|frontend|none
+next_step: 다음 수정 단계 또는 리스크 수용 여부
+```
+
+Use these security-oriented categories when relevant:
+
+- `missing_validation`
+- `auth_gap`
+- `ownership_gap`
+- `secret_exposure_risk`
+
+Return rules:
+
+- `pass`
+  - the reviewed path has no blocking security issue for the current scope
+- `needs_revision`
+  - concrete security fixes are needed in the nearest implementation stage
+- `fail`
+  - the current result should not proceed; return to `planning` when the design itself is unsafe, otherwise return to `backend` or `frontend` based on where the issue lives
+
 ## Next Step
 
 If the changed path passes this review or the remaining risks are accepted explicitly, the work can be treated as complete.

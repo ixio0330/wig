@@ -79,6 +79,37 @@ When reporting, focus on:
 - Does the code repeat work that could be pre-grouped, memoized per request, or indexed once?
 - Did the review trace the real route -> service -> storage path?
 
+## Output Contract
+
+When finishing performance review, report with this shape by default:
+
+```text
+stage: performance
+status: pass|needs_revision|fail
+summary: 한두 문장 요약
+findings:
+- ...
+failure_categories:
+- ...
+return_to: backend|frontend|none
+next_step: 다음 수정 단계 또는 후속 검토
+```
+
+Use these performance-oriented categories when relevant:
+
+- `performance_scan_risk`
+- `n_plus_one_risk`
+- `query_width_risk`
+
+Return rules:
+
+- `pass`
+  - no meaningful static regression pattern was found, or the risk is already handled
+- `needs_revision`
+  - a concrete hot path should be reworked in `backend` or `frontend`
+- `fail`
+  - the change should not proceed in its current form because the cost shape is too risky; return to the nearest implementation stage with the hot path called out explicitly
+
 ## Next Step
 
 If the changed path has no obvious regression pattern or the risks are handled, continue with the normal workflow or treat the performance review as complete.
